@@ -40,6 +40,7 @@ def test_network_loss_before_spin_request_makes_no_debit(game_ready):
 @pytest.mark.interruption
 @pytest.mark.recovery
 @pytest.mark.test_case("PS-INT-009")
+@pytest.mark.test_case("PS-EDG-033")
 def test_network_loss_after_spin_request_sent_recovers_without_duplication(game_ready, config):
     """PS-INT-009: if the spin request reaches the server but the response
     never arrives (connection drop in flight), the post-recovery state
@@ -113,6 +114,7 @@ def test_long_network_outage_is_recoverable_on_relaunch(game_ready):
 @pytest.mark.recovery
 @pytest.mark.negative
 @pytest.mark.test_case("PS-INT-017")
+@pytest.mark.test_case("PS-EDG-031")
 def test_session_expiration_mid_free_spins_allows_relaunch_recovery(game_ready, config):
     """PS-INT-017: an auth/session failure mid-Free-Spins must not strand
     the session — regardless of what the client shows for the mocked
@@ -194,6 +196,7 @@ def test_wallet_debit_failure_on_spin_plays_no_round(game_ready, config):
 @pytest.mark.recovery
 @pytest.mark.negative
 @pytest.mark.test_case("PS-INT-020")
+@pytest.mark.test_case("PS-EDG-032")
 def test_slow_spin_response_does_not_double_process(game_ready, config):
     """PS-INT-020: an abnormally slow spin response (beyond a normal
     round-trip, here an artificial 6s add-on) must not cause state

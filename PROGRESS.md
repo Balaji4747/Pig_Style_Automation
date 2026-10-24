@@ -121,7 +121,22 @@ apply the marker tags. Results not yet reviewed as of this checkpoint — see DE
 once that lands for how any unmapped rows (Buy-confirm-dependent ones, most likely) were
 handled.
 
-## Sheets not yet started: PS-FEA (59 rows), PS-EDG (42 rows), PS-UI (47 rows)
+## Sheet: Edge & Boundary Cases (PS-EDG) — 29 of 42 written
+Added after the initial checkpoint, using idle time well (the live session recovery cost
+demonstrated by D-012 doesn't block writing more code, only running it). Genuinely new:
+input-racing (019,020,021,023,041), display (009,038), many-simultaneous-wins (013, bounded
+10-attempt natural-high-ways search, not a wait for a rare forced outcome), two-tab/
+browser-back-forward (036,034,035, new `tests/conftest.py` shared `open_game_page_in`
+fixture — promoted from a per-directory duplicate once a second sheet needed it). Tagged
+onto existing tests rather than duplicating: 029->PS-INT-023, 030->PS-ERR-003, 031->PS-
+INT-017, 032->PS-INT-020, 033->PS-INT-009. Explicit Blocked skips with reasoning for 13
+more (001-008,010-012,014-017,022,024,026-028,037,039,040 — balance-boundary preconditions
+unreachable at this session's inflated balance, Buy-confirm gap, cap-trigger gap, reel-
+height not independently controllable, no History page object, single-currency session).
+Not written: 018,042 (workbook: No). Not yet run live (same D-012 pacing caveat as the
+other new sheets).
+
+## Sheets not yet started: PS-FEA (59 rows), PS-UI (47 rows)
 Not written this run — by the time PS-INT/PS-ERR/PS-STR/PS-MTH/PS-CMP/PS-REG were in
 hand, the live PS-INT run itself had demonstrated that a single feature-triggering
 interruption/recovery test can take several real minutes (forcing a Bonus trigger, playing
@@ -141,16 +156,10 @@ choice-screen double-tap, Buy-feature cluster sharing PS-INT-005's Buy-confirm b
 7-day/6d23h-inactivity cases sharing PS-INT-022's can't-fast-forward-server-clocks limit,
 "another device" sharing PS-STR-018's one-account limit).
 
-**PS-EDG** (Edge & Boundary Cases, 42 rows, 40 Yes): balance-boundary cases (001-006) need
-the same insufficient-balance mocking as PS-ERR-001 (this session's balance is ~6.1M EUR,
-see D-005/006 — can't genuinely drain it); cap/large-win display cases (009-015) share
-PS-INT-026's no-guaranteed-cap-trigger blocker except 013/014 (thousands-of-ways board,
-achievable by waiting for or forcing a high-reel-height spin, no cheat needed) which are
-readily automatable; input-racing cases (019-023, spam-click/simultaneous-input/click-
-during-presentation) are a genuinely new, valuable category not covered elsewhere and
-fully automatable with Playwright's precise event timing; session/network edge cases
-(028-036) overlap heavily with PS-INT's existing techniques; display cases (037-040) are
-small, easy, high-value (currency decimals, large-digit balance display).
+**PS-EDG**: written this run (29 of 42) — see the "Sheet: Edge & Boundary Cases" section
+above for what's done. 13 cases Blocked with reasoning (balance-boundary preconditions,
+Buy-confirm, cap-trigger, reel-height control, no History page object, single-currency
+session), 2 not automated (workbook: No).
 
 **PS-UI** (UI-UX Testing, 47 rows, almost entirely Partial): fundamentally a visual-
 regression concern (layout correctness at N resolutions, alignment, no layout jump) that

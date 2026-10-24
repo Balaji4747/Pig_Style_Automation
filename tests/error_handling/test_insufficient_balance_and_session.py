@@ -42,6 +42,7 @@ def test_insufficient_balance_on_buy_makes_no_debit():
 
 
 @pytest.mark.test_case("PS-ERR-003")
+@pytest.mark.test_case("PS-EDG-030")
 def test_session_expired_on_spin_shows_error_and_allows_relaunch(game_ready, mock_spin_failure):
     """PS-ERR-003: a spin attempt with an expired session must show a
     session-expired message and offer a reload/relaunch path.

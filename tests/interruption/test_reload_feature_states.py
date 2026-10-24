@@ -25,6 +25,7 @@ def test_reload_of_unfinished_free_spins_resumes(game_ready):
 @pytest.mark.interruption
 @pytest.mark.recovery
 @pytest.mark.test_case("PS-INT-023")
+@pytest.mark.test_case("PS-EDG-029")
 def test_reload_immediately_after_feature_trigger_shows_choice_screen(game_ready):
     """PS-INT-023: reloading in the instant right after a feature-triggering
     spin's response arrives — before the client has even rendered the
