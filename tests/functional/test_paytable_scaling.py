@@ -6,6 +6,7 @@ import pytest
 @pytest.mark.functional
 @pytest.mark.regression
 @pytest.mark.sanity
+@pytest.mark.test_case("PS-REG-012")
 def test_paytable_values_scale_linearly_with_bet(game_ready, init_data):
     """PS-FUN-034: every paytable value equals bet * pay(credits) / 20,
     rounded half-up to 2 decimals. Validated via forced wins at

@@ -6,6 +6,7 @@ import pytest
 @pytest.mark.functional
 @pytest.mark.regression
 @pytest.mark.sanity
+@pytest.mark.test_case("PS-REG-034")
 def test_auto_spin_plays_exact_count_then_stops(game_ready):
     """PS-FUN-072: Auto Spin plays exactly the selected number of spins then
     stops automatically. Uses the smallest available count (5) for suite
@@ -34,6 +35,7 @@ def test_auto_spin_plays_exact_count_then_stops(game_ready):
 
 @pytest.mark.functional
 @pytest.mark.regression
+@pytest.mark.test_case("PS-REG-035")
 def test_auto_spin_stop_ends_after_current_round(game_ready):
     """PS-FUN-074: pressing Stop ends Auto Spin after the current round
     completes; no further rounds start."""

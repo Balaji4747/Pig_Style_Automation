@@ -6,6 +6,7 @@ import pytest
 @pytest.mark.functional
 @pytest.mark.regression
 @pytest.mark.sanity
+@pytest.mark.test_case("PS-REG-028")
 def test_buy_feature_interface_shows_cost_and_controls(game_ready, init_data):
     """PS-FUN-057: Buy Feature opens showing cost (100x total bet) and both
     Confirm and Cancel."""
@@ -19,6 +20,7 @@ def test_buy_feature_interface_shows_cost_and_controls(game_ready, init_data):
 
 @pytest.mark.functional
 @pytest.mark.regression
+@pytest.mark.test_case("PS-REG-029")
 def test_buy_feature_cost_scales_with_bet(game_ready, init_data):
     """PS-FUN-058: Buy cost is exactly 100x the total bet at every bet
     level tested (min, default, max)."""

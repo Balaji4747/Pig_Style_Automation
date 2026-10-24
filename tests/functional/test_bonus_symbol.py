@@ -4,6 +4,7 @@ import pytest
 @pytest.mark.functional
 @pytest.mark.regression
 @pytest.mark.sanity
+@pytest.mark.test_case("PS-REG-024")
 def test_three_bonus_symbols_trigger_free_spins(game_ready):
     """PS-FUN-050: 3 Bonus symbols anywhere on the reels trigger Free Spins
     (the FS type selection screen). force_next_spin("3 OAK BN") places BN on
@@ -18,6 +19,7 @@ def test_three_bonus_symbols_trigger_free_spins(game_ready):
 
 @pytest.mark.functional
 @pytest.mark.regression
+@pytest.mark.test_case("PS-REG-025")
 def test_fewer_than_three_bonus_symbols_do_not_trigger(game_ready):
     """PS-FUN-051: fewer than 3 Bonus symbols do not trigger Free Spins.
     Validated as an emergent property across a batch of regular spins (the

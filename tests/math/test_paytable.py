@@ -4,6 +4,8 @@ from utils.paytable_loader import Paytable
 
 
 @pytest.mark.math
+@pytest.mark.regression
+@pytest.mark.test_case("PS-REG-011")
 def test_live_paytable_matches_math_file(init_data):
     """PS-FUN-023..033: the live game session's paytable (init_data, read at
     runtime from the init API response) must match the math file's paytable

@@ -6,6 +6,7 @@ from utils.megaways_calculator import evaluate, total_win
 @pytest.mark.functional
 @pytest.mark.regression
 @pytest.mark.sanity
+@pytest.mark.test_case("PS-REG-020")
 def test_wild_never_appears_on_reel_1_or_6(game_ready):
     """PS-FUN-045: Wild (WC) only appears on reels 2-5 in the base game.
     Reduced from the workbook's 500-spin sample to a smaller mix of forced
@@ -25,6 +26,8 @@ def test_wild_never_appears_on_reel_1_or_6(game_ready):
 
 @pytest.mark.functional
 @pytest.mark.regression
+@pytest.mark.test_case("PS-REG-021")
+@pytest.mark.test_case("PS-REG-022")
 def test_wild_substitution_and_scatter_count_validated_via_calculator(game_ready, init_data):
     """PS-FUN-046 (Wild substitutes for all paying symbols), PS-FUN-047
     (Wild does not substitute for Bonus / inflate scatter count), PS-FUN-049

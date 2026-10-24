@@ -16,6 +16,7 @@ from utils.megaways_calculator import evaluate
 @pytest.mark.regression
 @pytest.mark.test_case("PS-MTH-029")
 @pytest.mark.test_case("PS-MTH-030")
+@pytest.mark.test_case("PS-REG-023")
 def test_wild_involved_win_has_consistent_structure(game_ready):
     """PS-MTH-029 (two WC on the same way) / PS-MTH-030 (WC and a paying
     symbol on the same reel): forces multiple wilds and checks structural

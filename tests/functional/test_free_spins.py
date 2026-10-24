@@ -6,6 +6,7 @@ from utils.api_client import parse_spin_response
 @pytest.mark.functional
 @pytest.mark.regression
 @pytest.mark.sanity
+@pytest.mark.test_case("PS-REG-026")
 def test_free_spins_choice_screen_offers_correct_spin_counts(game_ready):
     """PS-FUN-054: after a 3-Bonus trigger, both Sticky Wilds (7 spins) and
     Raining Wilds (15 spins) are offered — matching the math file
@@ -45,6 +46,7 @@ def test_free_spins_choice_screen_offers_correct_spin_counts(game_ready):
 
 @pytest.mark.functional
 @pytest.mark.regression
+@pytest.mark.test_case("PS-REG-027")
 def test_free_spins_play_at_triggering_bet_with_no_per_spin_debit(game_ready):
     """PS-FUN-056: Free Spins are played at the same bet as the triggering
     spin, and no bet is debited per Free Spin (balance only ever increases

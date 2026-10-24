@@ -131,4 +131,8 @@ def test_viewport_rotation_during_win_presentation_keeps_correct_values(game_rea
     game_ready.page.wait_for_timeout(1_000)
     game_ready.page.set_viewport_size(landscape)
 
+    # get_init_data() reflects the init captured at the last reload (before
+    # this spin), not this spin's result — reload to read a FRESH balance
+    # and confirm the win survived the rotation uncorrupted.
+    game_ready.reload_and_wait_ready()
     assert game_ready.get_init_data().player_info.balance == result.balance

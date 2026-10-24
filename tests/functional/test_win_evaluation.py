@@ -33,6 +33,12 @@ def _assert_calculator_matches_server(result, paytable) -> None:
 @pytest.mark.functional
 @pytest.mark.regression
 @pytest.mark.sanity
+@pytest.mark.test_case("PS-REG-014")
+@pytest.mark.test_case("PS-REG-015")
+@pytest.mark.test_case("PS-REG-016")
+@pytest.mark.test_case("PS-REG-017")
+@pytest.mark.test_case("PS-REG-018")
+@pytest.mark.test_case("PS-REG-019")
 def test_win_calculation_matches_server_across_forced_and_free_spins(game_ready, init_data):
     """PS-FUN-038 (left-to-right, adjacent reels only), PS-FUN-039 (stop at
     first non-matching/non-wild reel), PS-FUN-040 (ways = product of
