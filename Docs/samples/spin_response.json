@@ -1,0 +1,39 @@
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "Spin completed successfully",
+  "data": {
+    "gameId": "pigstyle",
+    "roundId": "7cc30a74-d75f-44d4-84ac-dbe2e54c714c",
+    "closed": true,
+    "playerInfo": {
+      "playerId": "6acc894bebdf795bff687bf1",
+      "balance": 6118317.24,
+      "endTime": "2026-10-24T12:20:34.808Z"
+    },
+    "result": {
+      "totalWin": 0,
+      "betAmountUsed": 0.05,
+      "bet": 1,
+      "reelView": [
+        ["BB", "KK", "CC"],
+        ["JJ", "CC", "JJ", "GG", "CC", "JJ", "KK"],
+        ["JJ", "AA", "GG"],
+        ["BB", "BB", "WC", "FF", "JJ", "JJ"],
+        ["GG", "DD", "FF"],
+        ["KK", "BB"]
+      ],
+      "winLines": [],
+      "reelModifiers": [],
+      "nextFeature": null,
+      "nextFeatureSubType": null,
+      "wildMultipliers": [[3, 2, 0]],
+      "spinWin": 0,
+      "maxCapReached": false,
+      "maxWin": 10000,
+      "featureTriggerPositions": [],
+      "scatterCount": 0,
+      "isFeatureTriggered": false
+    }
+  }
+}

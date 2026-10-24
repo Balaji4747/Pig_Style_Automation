@@ -1,0 +1,313 @@
+from decimal import Decimal
+
+from playwright.sync_api import Page
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
+
+from pages.base_page import BasePage
+from pages.auto_spin_panel import AutoSpinPanel
+from pages.bet_panel import BetPanel
+from pages.buy_feature_panel import BuyFeaturePanel
+from pages.cheat_panel import CheatPanel
+from pages.rules_page import RulesPage
+from pages.paytable_page import PaytablePage
+from utils.api_client import InitResponse, SpinResult, parse_init_response, parse_spin_response
+from utils.canvas_helper import percent_to_pixels
+from utils.network_spy import CapturedExchange, NetworkSpy
+
+
+class GamePage(BasePage):
+    """Main game screen. The game is pure canvas (PIXI.js) with zero DOM
+    controls, so buttons are clicked via their live PIXI scene-graph node
+    name (see BasePage.click_pixi_button), not hardcoded coordinates.
+    Balance/bet/win/reels come from the intercepted init/spin API responses
+    (via NetworkSpy), parsed into typed Decimal-based dataclasses by
+    utils/api_client.py — not from canvas pixels.
+
+    Confirmed endpoints (23 Oct 2026, qa env):
+      init: POST https://api.test.spiniq.io/gs/pack-alpha/games/init
+      spin: POST https://api.test.spiniq.io/gs/pack-alpha/games/spin
+    """
+
+    # "startBtn" is NOT used to dismiss the splash: the game reuses that node
+    # name across several popups (splash, feature-intro, etc), so clicking
+    # "the first visible startBtn" is ambiguous and was confirmed unreliable
+    # in testing. "splashView" is the splash's own container and is a
+    # reliable, unambiguous signal of whether it's showing.
+    SPLASH_VIEW_NODE = "splashView"
+    # PLAY GAME button position as a fraction of canvas size (confirmed
+    # reliable across many manual runs; see CLAUDE.md > Locator strategy).
+    PLAY_GAME_POSITION_PCT = (50.0, 83.8)
+    # Base-game-only UI element (the MEGAWAYS counter). Confirmed to never
+    # exist while the splash is showing, unlike spinBtn (see is_loaded's
+    # docstring) — used as the "definitely on the base game" signal, since
+    # the splash is sometimes skipped by the server entirely (session/
+    # preference-dependent) and never appears at all.
+    BASE_GAME_READY_NODE = "megawaysText"
+    # "CHOOSE YOUR FREE SPINS FEATURE" title and the post-feature
+    # "Congratulations" popup — used to auto-recover from any spin that
+    # triggers a feature (forced outcomes can trigger one incidentally,
+    # e.g. "6 OAK AA" sometimes also lands Bonus symbols).
+    FEATURE_CHOICE_TITLE_NODE = "selectionTxt"
+    CONGRATS_TEXT_NODE = "congratText"
+    # "Please wait, loading feature game assets" overlay — confirmed to
+    # block spin input while showing (same stale-visible-flag issue as
+    # elsewhere: megawaysText still reports visible=true underneath it, so
+    # it must be checked separately, not folded into is_base_game_ready).
+    LOADING_OVERLAY_NODE = "loader_anim"
+
+    SPIN_BUTTON_NODE = "spinBtn"
+    STOP_SPIN_BUTTON_NODE = "stopSpinBtn"
+    STOP_AUTO_BUTTON_NODE = "stopAutoBtn"
+    BET_BUTTON_NODE = "betBtn"
+    BUY_FEATURE_BUTTON_NODE = "bbBtn"
+    MENU_BUTTON_NODE = "menuBtn"
+    INFO_BUTTON_NODE = "infoBtn"
+    TURBO_BUTTON_NODE = "turboBtn"
+    SOUND_ON_BUTTON_NODE = "soundOnBtn"
+    SOUND_OFF_BUTTON_NODE = "soundOffBtn"
+
+    def __init__(self, page: Page, network_spy: NetworkSpy):
+        super().__init__(page)
+        self.network_spy = network_spy
+
+    def goto(self, url: str, timeout_ms: int = 30_000) -> None:
+        """Navigates to the game and waits specifically for the init
+        response caused by this navigation (via NetworkSpy.wait_for_response
+        / Playwright's expect_response), not a poll of "has an init response
+        shown up yet"."""
+        self.network_spy.wait_for_response("init", lambda: super(GamePage, self).goto(url), timeout_ms=timeout_ms)
+
+    def is_splash_visible(self) -> bool:
+        return self.get_pixi_node_or_none(self.SPLASH_VIEW_NODE) is not None
+
+    def is_base_game_ready(self) -> bool:
+        return self.get_pixi_node_or_none(self.BASE_GAME_READY_NODE) is not None
+
+    def is_loading_overlay_visible(self) -> bool:
+        return self.get_pixi_node_or_none(self.LOADING_OVERLAY_NODE) is not None
+
+    def wait_for_loading_overlay_to_clear(self, timeout_ms: int = 60_000) -> None:
+        """The "Please wait, loading feature game assets" overlay can appear
+        at any point (observed: after playing a Free Spins round) and blocks
+        spin input while showing. Given a generous timeout since it can be
+        a real asset download, not just an animation."""
+        self.wait_for(lambda: not self.is_loading_overlay_visible(), timeout_ms=timeout_ms)
+
+    def dismiss_splash(self, timeout_ms: int = 30_000) -> None:
+        """Click PLAY GAME on the splash screen to reach the base game.
+
+        Loading happens in two stages: a generic platform loader first (no
+        PIXI app yet, or an empty stage), then the Pig Style splash itself
+        (with a loading bar of its own before PLAY GAME appears). So
+        is_splash_visible()==False is ambiguous on its own — it means either
+        "dismissed" or "hasn't rendered yet". This first waits for the splash
+        to actually appear, then retries clicking until it's gone (a click
+        on the loading-bar area does nothing, so a single click can't be
+        trusted either)."""
+        self.wait_for(self.is_splash_visible, timeout_ms=timeout_ms)
+
+        canvas_box = self.page.locator(self.CANVAS_SELECTOR).first.bounding_box()
+        x, y = percent_to_pixels(canvas_box, *self.PLAY_GAME_POSITION_PCT)
+
+        def try_dismiss() -> bool:
+            self.click_canvas(x, y)
+            return not self.is_splash_visible()
+
+        self.wait_for(try_dismiss, timeout_ms=timeout_ms, interval_ms=500)
+
+    def ensure_base_game_ready(self, timeout_ms: int = 30_000) -> None:
+        """Waits until the base game is interactable, dismissing the splash
+        screen if one appears. The splash is sometimes skipped entirely
+        (server/session-dependent) and the game goes straight to the base
+        game once assets finish loading — this handles both cases.
+
+        Also resolves any pending round left over from a previous session
+        (e.g. an unresolved Free Spins choice): the init response's
+        `unfinishedInfo` is a reliable, immediate signal for this — the
+        choice-screen popup itself fades in, so checking for it visually
+        right after load is timing-sensitive and was confirmed unreliable."""
+        self.wait_for(lambda: self.is_splash_visible() or self.is_base_game_ready(), timeout_ms=timeout_ms)
+        if self.is_splash_visible():
+            self.dismiss_splash(timeout_ms=timeout_ms)
+        self.wait_for(self.is_base_game_ready, timeout_ms=timeout_ms)
+        self.wait_for_loading_overlay_to_clear(timeout_ms=timeout_ms)
+        if self.get_init_data().unfinished_info is not None:
+            self.resolve_pending_feature(timeout_ms=timeout_ms)
+
+    def is_loaded(self) -> bool:
+        """Whether the game's PIXI app has initialized (post goto(), which
+        already guarantees the init response arrived)."""
+        return self.page.locator(self.CANVAS_SELECTOR).count() > 0 and self.is_pixi_ready()
+
+    def get_init_data(self) -> InitResponse:
+        """Parsed init response (paytable, bet limits, currency, rtp, opCnf
+        flags, unfinishedInfo, etc.) for the current game session."""
+        exchange = self.network_spy.last("init")
+        if exchange is None or exchange.response_body is None:
+            raise RuntimeError("No init response captured yet — game may not be ready")
+        return parse_init_response(exchange.response_body)
+
+    def get_balance(self) -> Decimal:
+        spin_exchange = self.network_spy.last("spin")
+        if spin_exchange is not None and spin_exchange.response_body is not None:
+            return parse_spin_response(spin_exchange.response_body).balance
+        return self.get_init_data().player_info.balance
+
+    def spin(self, timeout_ms: int = 10_000) -> CapturedExchange:
+        """Triggers a spin and returns the raw captured exchange for the
+        response it causes, via NetworkSpy.wait_for_response (tied to this
+        specific action, not a poll of "last captured"). Use spin_and_wait()
+        for the parsed result.
+
+        Uses the documented Space-bar shortcut ("Press the spin button or
+        the space bar to start a game round") rather than clicking the
+        spinBtn PIXI node directly: in testing, a simulated click on the
+        button's computed bounds did not reliably register with the game's
+        event system, while Space was 100% reliable. See CLAUDE.md > Locator
+        strategy for details."""
+        self.wait_for_loading_overlay_to_clear()
+        # The game ignores spin input while the previous round's win
+        # presentation (rollup/celebration animation) is still playing —
+        # confirmed: back-to-back spin() calls time out if the prior spin
+        # won anything. wait_for_canvas_stable() doesn't work here (the
+        # background has a continuous ambient idle animation — clouds etc.
+        # — so the canvas is never byte-identical between frames even at
+        # rest, confirmed by a 15s wait never succeeding). No PIXI node
+        # exposes "presentation done" either, so this uses a fixed settle
+        # delay based on the confirmed opCnf.spinDuration (2000ms).
+        self.page.wait_for_timeout(3_000)
+
+        def trigger() -> None:
+            self.page.locator(self.CANVAS_SELECTOR).first.focus()
+            self.page.keyboard.press("Space")
+
+        return self.network_spy.wait_for_response("spin", trigger, timeout_ms=timeout_ms)
+
+    def spin_and_wait(self) -> SpinResult:
+        """Spins and returns the parsed result. If the spin triggered a
+        feature (including incidentally — some forced cheat outcomes land
+        Bonus symbols as a side effect, e.g. "6 OAK AA"), the result is
+        captured first and then the feature is auto-resolved (see
+        resolve_pending_feature()) so the caller always gets back a clean,
+        spinnable base-game state."""
+        exchange = self.spin()
+        result = parse_spin_response(exchange.response_body)
+        if result.is_feature_triggered:
+            self.resolve_pending_feature()
+        return result
+
+    def is_feature_choice_visible(self) -> bool:
+        return self.get_pixi_node_or_none(self.FEATURE_CHOICE_TITLE_NODE) is not None
+
+    def choose_free_spins_feature(self, which: str) -> None:
+        """which: "sticky" or "raining"."""
+        label = "STICKY WILDS" if which == "sticky" else "RAINING WILDS"
+        self.click_pixi_text(label)
+
+    def play_feature_spins_to_completion(self, max_spins: int = 30, response_timeout_ms: int = 8_000) -> None:
+        """Plays out an active Free Spins round by pressing Space repeatedly
+        until no further /feature responses arrive (round complete)."""
+        for _ in range(max_spins):
+            try:
+                self.network_spy.wait_for_response("feature", self.press_space_bar, timeout_ms=response_timeout_ms)
+            except PlaywrightTimeoutError:
+                break
+
+    def dismiss_congrats_popup_if_present(self, timeout_ms: int = 5_000) -> None:
+        if self.get_pixi_node_or_none(self.CONGRATS_TEXT_NODE) is None:
+            return
+        for label in ("OK", "Close"):
+            try:
+                self.click_pixi_text(label)
+                self.wait_for(lambda: self.get_pixi_node_or_none(self.CONGRATS_TEXT_NODE) is None, timeout_ms=timeout_ms)
+                return
+            except (RuntimeError, TimeoutError):
+                continue
+
+    def resolve_pending_feature(self, timeout_ms: int = 30_000) -> None:
+        """Resolves a Free Spins choice/round/congrats popup so the session
+        returns to a clean, spinnable base-game state. Picks Sticky Wilds
+        arbitrarily when a choice is offered.
+
+        Doesn't gate on is_feature_choice_visible()/a single flag: confirmed
+        unreliable (the choice popup's title node can remain visible=true
+        even once superseded by a later popup, the same stale-visible-flag
+        issue seen elsewhere in this game). Instead each step is attempted
+        in sequence and skipped if it doesn't apply to the current state."""
+        try:
+            self.click_pixi_text("STICKY WILDS")
+            self.wait_for(lambda: self.get_pixi_node_or_none(self.FEATURE_CHOICE_TITLE_NODE) is None, timeout_ms=5_000)
+        except (RuntimeError, TimeoutError):
+            pass
+
+        self.dismiss_congrats_popup_if_present()
+        self.play_feature_spins_to_completion()
+        self.dismiss_congrats_popup_if_present()
+
+        self.wait_for(self.is_base_game_ready, timeout_ms=timeout_ms)
+        self.wait_for_loading_overlay_to_clear(timeout_ms=timeout_ms)
+
+    def press_space_bar(self) -> None:
+        """Presses Space once without waiting for a spin response. Use
+        spin()/spin_and_wait() for a normal spin; use this for negative
+        tests (e.g. verifying Space does NOT spin while a panel is open)."""
+        self.page.locator(self.CANVAS_SELECTOR).first.focus()
+        self.page.keyboard.press("Space")
+
+    def get_displayed_balance_text(self) -> str:
+        return self.get_sibling_value_text("titleText", "BALANCE", "valueText")
+
+    def get_displayed_bet_text(self) -> str:
+        return self.get_sibling_value_text("titleText", "BET", "valueText")
+
+    def get_displayed_ways(self) -> int:
+        return self.get_displayed_integer_near_label(self.BASE_GAME_READY_NODE, "MEGAWAYS")
+
+    def toggle_turbo(self) -> None:
+        self.click_pixi_button(self.TURBO_BUTTON_NODE)
+
+    def open_bet_panel(self) -> BetPanel:
+        self.click_pixi_button(self.BET_BUTTON_NODE)
+        return BetPanel(self.page)
+
+    def open_buy_feature(self) -> BuyFeaturePanel:
+        self.click_pixi_button(self.BUY_FEATURE_BUTTON_NODE)
+        return BuyFeaturePanel(self.page)
+
+    def open_auto_spin_menu(self, hold_ms: int = 2200) -> AutoSpinPanel:
+        """Long-presses the spin button to open the Auto Spin menu, per the
+        game rules ("click and hold the Play button for 2 seconds")."""
+        bounds = self.get_pixi_node(self.SPIN_BUTTON_NODE)
+        canvas_box = self.page.locator(self.CANVAS_SELECTOR).first.bounding_box()
+        cx = canvas_box["x"] + bounds["x"] + bounds["width"] / 2
+        cy = canvas_box["y"] + bounds["y"] + bounds["height"] / 2
+        self.page.mouse.move(cx, cy)
+        self.page.mouse.down()
+        self.page.wait_for_timeout(hold_ms)
+        self.page.mouse.up()
+        return AutoSpinPanel(self.page)
+
+    def open_info_panel(self) -> RulesPage:
+        """Opens the Rules/Paytable overlay (real DOM, see RulesPage/
+        PaytablePage) and returns it on the Rules tab (its default tab)."""
+        self.click_pixi_button(self.INFO_BUTTON_NODE)
+        return RulesPage(self.page)
+
+    def open_paytable(self) -> PaytablePage:
+        return self.open_info_panel().go_to_paytable()
+
+    def open_cheat_panel(self) -> CheatPanel:
+        """Opens the built-in QA cheat tool (requires allowCheat=true on the
+        session, confirmed present in this game's init payload)."""
+        panel = CheatPanel(self.page)
+        panel.open()
+        return panel
+
+    def force_next_spin(self, outcome: str) -> None:
+        """Forces a specific outcome (e.g. "3 OAK BN", "6 OAK AA", "BIG WIN")
+        on the next spin, via the built-in cheat tool. Selecting an outcome
+        reloads the game session, so this also re-dismisses the splash
+        screen; call spin_and_wait() afterwards as normal."""
+        cheat_panel = self.open_cheat_panel()
+        cheat_panel.select(outcome)
+        self.ensure_base_game_ready()

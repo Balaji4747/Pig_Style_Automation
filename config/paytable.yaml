@@ -1,0 +1,21 @@
+# Paytable reference data, in credits at base total bet of 20 (matches both
+# the math file (pig_style_R7_1.xlsx) and the live init API's `payTable`
+# shape: [0, 0, 3-OAK, 4-OAK, 5-OAK, 6-OAK]).
+# Actual win per way = credits * (current_total_bet / 20) * product of wild
+# multipliers in that way.
+total_bet_credits: 20
+
+symbols:
+  AA: [0, 0, 15, 40, 60, 150]
+  BB: [0, 0, 10, 20, 30, 60]
+  CC: [0, 0, 7, 15, 20, 40]
+  DD: [0, 0, 4, 10, 15, 30]
+  EE: [0, 0, 3, 8, 10, 30]
+  FF: [0, 0, 3, 8, 10, 30]
+  GG: [0, 0, 2, 4, 6, 20]
+  HH: [0, 0, 2, 4, 6, 20]
+  JJ: [0, 0, 2, 4, 6, 20]
+  KK: [0, 0, 1, 2, 4, 10]
+  LL: [0, 0, 1, 2, 4, 10]
+  WC: [0, 0, 0, 0, 0, 0]  # Wild — non-paying, substitutes for AA-LL (reels 2-5)
+  BN: [0, 0, 0, 0, 0, 0]  # Bonus — non-paying, triggers Free Spins

@@ -1,0 +1,72 @@
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "Init completed successfully",
+  "data": {
+    "unfinishedInfo": null,
+    "gameInfo": {
+      "gameId": "pigstyle",
+      "devMode": true,
+      "payTable": {
+        "WC": [0, 0, 0, 0, 0, 0],
+        "AA": [0, 0, 15, 40, 60, 150],
+        "BB": [0, 0, 10, 20, 30, 60],
+        "CC": [0, 0, 7, 15, 20, 40],
+        "DD": [0, 0, 4, 10, 15, 30],
+        "EE": [0, 0, 3, 8, 10, 30],
+        "FF": [0, 0, 3, 8, 10, 30],
+        "GG": [0, 0, 2, 4, 6, 20],
+        "HH": [0, 0, 2, 4, 6, 20],
+        "JJ": [0, 0, 2, 4, 6, 20],
+        "KK": [0, 0, 1, 2, 4, 10],
+        "LL": [0, 0, 1, 2, 4, 10],
+        "BN": [0, 0, 0, 0, 0, 0]
+      }
+    },
+    "playerInfo": {
+      "playerId": "6acc894bebdf795bff687bf1",
+      "currencyCode": "EUR",
+      "maxPayout": 250000,
+      "balance": 6118318.24,
+      "language": "en",
+      "maxBet": 25,
+      "bbMaxBet": 2500,
+      "minBet": 0.1,
+      "defaultBet": 1,
+      "bbMaxWin": 250000,
+      "allowCheat": true,
+      "possibleBets": [
+        0.1, 0.2, 0.4, 0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8, 2, 2.5, 3, 3.5, 4,
+        4.5, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
+        22, 23, 24, 24.5, 25
+      ],
+      "buyFeature": true,
+      "homeURL": "https://feg-lobby-gaming-studio-shared.apps.ocp02-shared.t.dc1.cz.ipa.ifortuna.cz",
+      "depositUrl": null,
+      "bbBetMultiplierSettings": { "FG1": 100 }
+    },
+    "betType": null,
+    "preferences": { "sound": false, "showIntro": true },
+    "opCnf": {
+      "spinDuration": 2000,
+      "showGambleWarning": true,
+      "showElapsedTime": true,
+      "showNetLoss": false,
+      "showMaxBet": false,
+      "showMaxWin": false,
+      "showHourlyLoss": false,
+      "responsibleGaming": true,
+      "isAutoAvailable": true,
+      "isTurboAvailable": true,
+      "isBBAvailable": true,
+      "allowFullAnteBet": false,
+      "autoSpinSpendingLimit": false,
+      "showDisclosureText": true,
+      "showRTP": true,
+      "moneyRounding": { "decimals": 2, "mode": "half-up" }
+    },
+    "rtp": { "base": 96.99 },
+    "epoch": 1,
+    "jackpotInfo": null
+  }
+}

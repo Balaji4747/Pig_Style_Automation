@@ -1,0 +1,168 @@
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "Spin completed successfully",
+  "data": {
+    "gameId": "pigstyle",
+    "roundId": "d0ba8f39-e138-42fd-a83c-2d22509e9fb2",
+    "closed": false,
+    "playerInfo": {
+      "playerId": "6acc894bebdf795bff687bf1",
+      "balance": 6118307.29
+    },
+    "result": {
+      "totalWin": 1.6,
+      "betAmountUsed": 0.05,
+      "bet": 1,
+      "reelView": [
+        [
+          "BN",
+          "JJ",
+          "KK",
+          "AA",
+          "BB",
+          "FF",
+          "GG"
+        ],
+        [
+          "JJ",
+          "DD",
+          "BN",
+          "HH",
+          "BB",
+          "LL",
+          "GG"
+        ],
+        [
+          "BN",
+          "HH",
+          "BB",
+          "GG",
+          "CC",
+          "BB",
+          "BB"
+        ],
+        [
+          "BN",
+          "EE",
+          "EE",
+          "FF",
+          "LL",
+          "HH",
+          "CC"
+        ],
+        [
+          "CC",
+          "GG",
+          "AA",
+          "BB",
+          "HH",
+          "EE",
+          "CC"
+        ],
+        [
+          "EE",
+          "KK",
+          "LL",
+          "CC",
+          "LL",
+          "AA",
+          "LL"
+        ]
+      ],
+      "winLines": [
+        {
+          "symbol": "GG",
+          "winAmount": 0.1,
+          "multiplier": 1,
+          "consecutiveCount": 3,
+          "winningPosition": [
+            36,
+            37,
+            20
+          ],
+          "wildCount": 0
+        },
+        {
+          "symbol": "BB",
+          "winAmount": 0.5,
+          "multiplier": 1,
+          "consecutiveCount": 3,
+          "winningPosition": [
+            24,
+            25,
+            14
+          ],
+          "wildCount": 0
+        },
+        {
+          "symbol": "BB",
+          "winAmount": 0.5,
+          "multiplier": 1,
+          "consecutiveCount": 3,
+          "winningPosition": [
+            24,
+            25,
+            32
+          ],
+          "wildCount": 0
+        },
+        {
+          "symbol": "BB",
+          "winAmount": 0.5,
+          "multiplier": 1,
+          "consecutiveCount": 3,
+          "winningPosition": [
+            24,
+            25,
+            38
+          ],
+          "wildCount": 0
+        }
+      ],
+      "reelModifiers": [],
+      "nextFeature": "pickFeature",
+      "nextFeatureSubType": null,
+      "wildMultipliers": [],
+      "spinWin": 1.6,
+      "maxCapReached": false,
+      "maxWin": 10000,
+      "featureTriggerPositions": [
+        [
+          0,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "scatterCount": 4,
+      "isFeatureTriggered": true,
+      "featureResults": [
+        {
+          "featureType": "pickFeature",
+          "closed": false,
+          "isAborted": false,
+          "retrigger": false,
+          "retriggerCount": 0,
+          "spinResults": [],
+          "currentCount": 0,
+          "totalCount": 0,
+          "totalWin": 0,
+          "featureData": {
+            "baseWin": 1.6
+          }
+        }
+      ]
+    }
+  }
+}
