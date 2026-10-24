@@ -1,0 +1,39 @@
+Test Execution Summary,,,,,,,,,,
+Live: counts update from the Status column of each sheet. Fill in build details below.,,,,,,,,,,
+Build / Version,,,,,,,,,,
+Environment,,,,,,,,,,
+Execution Start,,,,,,,,,,
+Execution End,,,,,,,,,,
+Tester(s),,,,,,,,,,
+Math Config Deployed,,,,,,,,,,
+Jurisdiction / Operator,,,,,,,,,,
+Sheet,Total,Not Run,Pass,Fail,Blocked,N/A,Spec Confirmation,Executed,Pass Rate,Progress
+Functional Testing,90,90,0,0,0,0,0,0,0,0
+Math Validation,63,63,0,0,0,0,0,0,0,0
+Feature Testing,59,59,0,0,0,0,0,0,0,0
+Edge & Boundary Cases,42,42,0,0,0,0,0,0,0,0
+Regression Suite,162,162,0,0,0,0,0,0,0,0
+UI-UX Testing,47,47,0,0,0,0,0,0,0,0
+Compatibility Testing,21,21,0,0,0,0,0,0,0,0
+Interruption & Recovery,30,30,0,0,0,0,0,0,0,0
+STR - Transaction Testing,27,27,0,0,0,0,0,0,0,0
+Error Handling,20,20,0,0,0,0,0,0,0,0
+Total,561,561,0,0,0,0,0,0,0,0
+P0 status (release gate),,,,,,,,,,
+Sheet,P0 Total,P0 Pass,P0 Fail,P0 Open (Not Run/Blocked),,,,,,
+Functional Testing,49,0,0,49,,,,,,
+Math Validation,45,0,0,45,,,,,,
+Feature Testing,40,0,0,40,,,,,,
+Edge & Boundary Cases,16,0,0,16,,,,,,
+UI-UX Testing,1,0,0,1,,,,,,
+Compatibility Testing,3,0,0,3,,,,,,
+Interruption & Recovery,24,0,0,24,,,,,,
+STR - Transaction Testing,23,0,0,23,,,,,,
+Error Handling,8,0,0,8,,,,,,
+Release gate,NO GO,,,,,,,,,
+Defects and observations by severity,,,,,,,,,,
+Severity,Observations (spec),Defects (PS-DEF),Open total,,,,,,,
+Critical,3,0,3,,,,,,,
+High,8,0,8,,,,,,,
+Medium,8,0,8,,,,,,,
+Low,5,0,5,,,,,,,

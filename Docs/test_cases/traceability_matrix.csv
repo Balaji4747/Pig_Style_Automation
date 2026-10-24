@@ -1,0 +1,90 @@
+Traceability Matrix: Requirement -> Feature -> Test Case,,,,,,,,
+Req ID,Source,Section / Cell Ref,Requirement,Feature,Linked Test Case IDs,TC Count,Coverage,Linked Observations
+GR-01,Game Rules,Intro,"Megaways slot, 6 reels, up to 117,649 ways",Reels / Ways,"PS-FUN-001, PS-FUN-005, PS-FUN-006, PS-FUN-007, PS-FUN-008, PS-FUN-040, PS-MTH-016, PS-EDG-013, PS-EDG-014, PS-UI-001, PS-UI-010, PS-CMP-001, PS-CMP-002, PS-CMP-003, PS-CMP-004, PS-CMP-005, PS-CMP-006, PS-CMP-007, PS-CMP-008, PS-CMP-009, PS-CMP-010, PS-CMP-011, PS-CMP-012, PS-CMP-013",24,Covered,OBS-04
+GR-02,Game Rules,Intro,Each reel shows up to 7 symbols; ways depend on symbols per reel,Reels / Ways,"PS-FUN-005, PS-FUN-006, PS-MTH-015, PS-EDG-040, PS-UI-009",5,Covered,
+GR-03,Game Rules,Intro,Wins pay for matching symbols on adjacent reels from leftmost reel,Win Evaluation,"PS-FUN-038, PS-FUN-039, PS-FUN-040",3,Covered,
+GR-04,Game Rules,Intro,Paytable payouts based on current bet,Paytable,"PS-FUN-021, PS-FUN-034, PS-MTH-017, PS-MTH-018, PS-MTH-019, PS-MTH-020, PS-MTH-021, PS-MTH-022, PS-MTH-023, PS-MTH-024, PS-MTH-025",11,Covered,
+GR-05,Game Rules,Sticky Wilds FS,3/4/5/6 Bonus award 7/12/15/20 Free Spins,Sticky Wilds FS,"PS-FUN-054, PS-MTH-038, PS-MTH-039, PS-MTH-040, PS-MTH-041, PS-FEA-001, PS-FEA-002, PS-FEA-003, PS-FEA-004, PS-FEA-005, PS-FEA-041, PS-FEA-045",12,Covered,
+GR-06,Game Rules,Sticky Wilds FS,Up to 7 Sticky Wilds can land on each reel,Sticky Wilds FS,"PS-MTH-050, PS-FEA-028, PS-FEA-031, PS-FEA-032",4,Covered,OBS-06
+GR-07,Game Rules,Sticky Wilds FS,Each Wild assigned random multiplier x2 or x3,Sticky Wilds FS,"PS-MTH-034, PS-FEA-026, PS-FEA-027, PS-UI-024, PS-UI-034",5,Covered,"OBS-01, OBS-20"
+GR-08,Game Rules,Sticky Wilds FS,Sticky Wilds remain until feature end and resize as reels expand,Sticky Wilds FS,"PS-MTH-051, PS-FEA-025, PS-FEA-026, PS-FEA-029, PS-FEA-030, PS-FEA-033, PS-EDG-040, PS-INT-024",8,Covered,OBS-07
+GR-09,Game Rules,Raining Wilds FS,3/4/5/6 Bonus award 15/18/25/30 Free Spins,Raining Wilds FS,"PS-FUN-054, PS-MTH-042, PS-MTH-043, PS-MTH-044, PS-MTH-045, PS-FEA-013, PS-FEA-014, PS-FEA-015, PS-FEA-016, PS-FEA-017, PS-FEA-042, PS-FEA-045",12,Covered,
+GR-10,Game Rules,Raining Wilds FS,Up to 6 Wilds of any size in random positions per Free Spin,Raining Wilds FS,"PS-MTH-048, PS-MTH-049, PS-FEA-035, PS-FEA-036, PS-FEA-038, PS-FEA-039, PS-FEA-040, PS-UI-025",8,Covered,OBS-05
+GR-11,Game Rules,Raining Wilds FS,Each Wild carries multiplier x2 or x3,Raining Wilds FS,"PS-MTH-033, PS-FEA-037",2,Covered,OBS-01
+GR-12,Game Rules,Raining Wilds FS,All Free Spins winnings awarded when feature ends,Free Spins,"PS-FEA-003, PS-FEA-008, PS-FEA-009, PS-FEA-015, PS-FEA-020, PS-FEA-021, PS-FEA-059, PS-UI-022, PS-UI-026, PS-STR-005, PS-STR-006",11,Covered,OBS-08
+GR-13,Game Rules,Wild formula,Win = (Bet x Symbol Multiplier / 20) x Product of Wild Multipliers,Wild Multiplier,"PS-FUN-048, PS-MTH-027, PS-MTH-028, PS-MTH-029, PS-MTH-030, PS-MTH-031, PS-MTH-036, PS-MTH-037, PS-MTH-057, PS-FEA-034, PS-EDG-015",11,Covered,OBS-17
+GR-14,Game Rules,Free Spins,3+ Bonus anywhere trigger Free Spins,Free Spins Trigger,"PS-FUN-047, PS-FUN-050, PS-FUN-051, PS-MTH-011, PS-FEA-047, PS-EDG-016, PS-EDG-017, PS-EDG-018",8,Covered,OBS-16
+GR-15,Game Rules,Free Spins,Free Spins played at triggering bet,Free Spins,"PS-FUN-019, PS-FUN-056, PS-FEA-007, PS-FEA-019, PS-UI-013, PS-STR-005, PS-STR-011, PS-STR-016",8,Covered,
+GR-16,Game Rules,Free Spins,Player chooses Sticky Wilds or Raining Wilds,FS Selection,"PS-FUN-050, PS-FUN-054, PS-FUN-055, PS-FUN-077, PS-MTH-004, PS-FEA-041, PS-FEA-042, PS-FEA-043, PS-FEA-044, PS-EDG-022, PS-EDG-029, PS-UI-023, PS-CMP-001, PS-CMP-002, PS-CMP-003, PS-CMP-004, PS-CMP-005, PS-CMP-006, PS-CMP-007, PS-CMP-008, PS-CMP-009, PS-CMP-010, PS-CMP-011, PS-CMP-012, PS-CMP-013, PS-STR-010, PS-STR-015",27,Covered,"OBS-14, OBS-24"
+GR-17,Game Rules,Free Spins,FS count depends on Bonus count and type,FS Award,"PS-FUN-054, PS-MTH-038, PS-MTH-039, PS-MTH-040, PS-MTH-041, PS-MTH-042, PS-MTH-043, PS-MTH-044, PS-MTH-045, PS-FEA-001, PS-FEA-002, PS-FEA-003, PS-FEA-004, PS-FEA-005, PS-FEA-013, PS-FEA-014, PS-FEA-015, PS-FEA-016, PS-FEA-017, PS-FEA-045, PS-EDG-017",21,Covered,
+GR-18,Game Rules,Free Spins,Free Spins cannot be retriggered,Free Spins,"PS-MTH-062, PS-FEA-006, PS-FEA-018",3,Covered,
+GR-19,Game Rules,Play,Bets placed in selected currency,Currency / Balance,"PS-FUN-001, PS-FUN-003, PS-FUN-004, PS-FUN-022, PS-EDG-037, PS-EDG-038, PS-UI-017, PS-UI-037",8,Covered,
+GR-20,Game Rules,Play,Bet adjustable within min/max via bet button or menu,Bet,"PS-FUN-014, PS-FUN-015, PS-FUN-016, PS-FUN-017, PS-FUN-018, PS-FUN-079, PS-EDG-005, PS-EDG-041, PS-STR-012",9,Covered,
+GR-21,Game Rules,Play,Total bet displayed in bet field,Bet,"PS-FUN-001, PS-FUN-017",2,Covered,
+GR-22,Game Rules,Play,Play button starts a round at current bet,Spin,"PS-FUN-009, PS-FUN-018, PS-FUN-020, PS-EDG-001, PS-EDG-003, PS-EDG-019, PS-EDG-021, PS-EDG-032, PS-UI-038, PS-CMP-001, PS-CMP-002, PS-CMP-003, PS-CMP-004, PS-CMP-005, PS-CMP-006, PS-CMP-007, PS-CMP-008, PS-CMP-009, PS-CMP-010, PS-CMP-011, PS-CMP-012, PS-CMP-013, PS-STR-001, PS-STR-003, PS-STR-007, PS-STR-008, PS-STR-009, PS-STR-017, PS-STR-018, PS-STR-019, PS-STR-021, PS-STR-022, PS-STR-024, PS-STR-025, PS-STR-027, PS-ERR-001",36,Covered,
+GR-23,Game Rules,Win,2+ high-value or 3+ low-value matching symbols pay,Win Evaluation,PS-FUN-041,1,Partial,OBS-03
+GR-24,Game Rules,Win,Regular symbol wins pay left to right only,Win Evaluation,PS-FUN-038,1,Partial,
+GR-25,Game Rules,Win,"Wins paid per paytable, displayed in win field",Win Display,"PS-FUN-021, PS-FUN-042, PS-EDG-009, PS-EDG-013, PS-UI-018, PS-UI-019, PS-UI-020, PS-UI-021, PS-UI-039, PS-STR-002",10,Covered,OBS-22
+GR-26,Game Rules,Win,Only highest win on each active payline paid,Win Evaluation,PS-FUN-043,1,Partial,OBS-04
+GR-27,Game Rules,Win,More matching symbols award higher payout,Paytable,"PS-FUN-043, PS-FUN-044",2,Covered,
+GR-28,Game Rules,Bet and Max Win,Min Bet / Max Bet values,Bet,"PS-FUN-015, PS-FUN-016, PS-MTH-058, PS-EDG-001, PS-EDG-002, PS-EDG-007, PS-EDG-008, PS-UI-036, PS-STR-012, PS-STR-013",10,Covered,OBS-09
+GR-29,Game Rules,Bet and Max Win,Winnings capped in base and FS; cap credited,Max Win,"PS-FUN-086, PS-MTH-053, PS-MTH-054, PS-MTH-055, PS-MTH-056, PS-FEA-012, PS-FEA-024, PS-EDG-010, PS-EDG-011, PS-EDG-012, PS-EDG-014, PS-EDG-015, PS-UI-028, PS-INT-026, PS-STR-023, PS-ERR-019",16,Covered,"OBS-09, OBS-12"
+GR-30,Game Rules,Quick Spin,Quick Spin speeds up play; jurisdiction dependent,Quick Spin,"PS-FUN-067, PS-FUN-068",2,Covered,OBS-18
+GR-31,Game Rules,Quick Stop,Press spin again to stop reels early; jurisdiction dependent,Quick Stop,"PS-FUN-012, PS-FUN-013, PS-UI-012, PS-UI-046",4,Covered,OBS-19
+GR-32,Game Rules,Buy Free Spins,Buy Feature opens interface with feature settings,Buy Feature,"PS-FUN-057, PS-FUN-060, PS-FUN-064, PS-FEA-048, PS-FEA-052, PS-FEA-053, PS-EDG-023, PS-UI-030, PS-CMP-001, PS-CMP-002, PS-CMP-003, PS-CMP-004, PS-CMP-005, PS-CMP-006, PS-CMP-007, PS-CMP-008, PS-CMP-009, PS-CMP-010, PS-CMP-011, PS-CMP-012, PS-CMP-013",21,Covered,OBS-10
+GR-33,Game Rules,Buy Free Spins,Confirm starts feature-triggering spin at selected bet,Buy Feature,"PS-FUN-059, PS-FEA-049, PS-FEA-050, PS-FEA-051",4,Covered,
+GR-34,Game Rules,Buy Free Spins,Triggering spin awards applicable wins,Buy Feature,"PS-FUN-061, PS-FEA-047",2,Covered,
+GR-35,Game Rules,Buy Free Spins,Bet reverts to pre-purchase value after feature,Buy Feature,PS-FUN-062,1,Partial,
+GR-36,Game Rules,Buy Free Spins,Buy cost 100x total bet,Buy Feature,"PS-FUN-057, PS-FUN-058, PS-FUN-059, PS-FUN-063, PS-FUN-083, PS-FEA-053, PS-EDG-006, PS-EDG-007, PS-EDG-008, PS-STR-004, PS-STR-014, PS-ERR-002",12,Covered,
+GR-37,Game Rules,Turbo Spin,Turbo toggle reduces spin and win animation duration,Turbo,"PS-FUN-065, PS-FUN-066, PS-FEA-046, PS-UI-016, PS-UI-040",5,Covered,OBS-18
+GR-38,Game Rules,Auto Spin,Desktop: hold Play 2s opens Auto Spin menu,Auto Spin,"PS-FUN-069, PS-FUN-070, PS-EDG-025",3,Covered,
+GR-39,Game Rules,Auto Spin,"Mobile: hold Play 2s, select, tap Start",Auto Spin,PS-FUN-071,1,Partial,
+GR-40,Game Rules,Auto Spin,Stop condition based on spend limit,Auto Spin,"PS-FUN-076, PS-EDG-024",2,Covered,OBS-21
+GR-41,Game Rules,Auto Spin,"Panel shows total, remaining and total win",Auto Spin,"PS-FUN-073, PS-UI-031",2,Covered,
+GR-42,Game Rules,Auto Spin,Start and Cancel buttons,Auto Spin,PS-FUN-075,1,Partial,
+GR-43,Game Rules,Auto Spin,Ends after selected count; Stop anytime,Auto Spin,"PS-FUN-072, PS-FUN-074, PS-FUN-077, PS-FUN-078, PS-EDG-026, PS-EDG-027, PS-INT-027",7,Covered,OBS-24
+GR-44,Game Rules,How to Play,Spin via button or space bar,Spin,"PS-FUN-010, PS-FUN-011, PS-EDG-020",3,Covered,
+GR-45,Game Rules,How to Play,Bet panel controls,Bet,PS-FUN-014,1,Partial,
+GR-46,Game Rules,How to Play,"Menu options (Lobby, History, Sound, Rules, Splash, Deposit, Promotions)",Menu,"PS-FUN-002, PS-FUN-080, PS-FUN-081, PS-EDG-004, PS-UI-027, PS-STR-026",6,Covered,
+GR-47,Game Rules,How to Play,"History shows result, bet, win, date/time, features",History,"PS-FUN-082, PS-FUN-083, PS-EDG-039, PS-STR-020",4,Covered,
+GR-48,Game Rules,How to Play,Info button opens rules and paytable,Game Info,"PS-FUN-037, PS-FUN-084, PS-UI-032, PS-UI-033, PS-UI-035",5,Covered,
+GR-49,Game Rules,How to Play,Sound toggles incl. ambient and effects,Audio,"PS-FUN-087, PS-FUN-088, PS-FEA-046, PS-UI-041, PS-UI-042, PS-UI-043, PS-UI-044, PS-UI-045, PS-UI-046, PS-UI-047",10,Covered,
+GR-50,Game Rules,Paytable,Paytable values based on current bet,Paytable,"PS-FUN-023, PS-FUN-024, PS-FUN-025, PS-FUN-026, PS-FUN-027, PS-FUN-028, PS-FUN-029, PS-FUN-030, PS-FUN-031, PS-FUN-032, PS-FUN-033, PS-FUN-034, PS-UI-032",13,Covered,OBS-15
+GR-51,Game Rules,Paytable,Select symbol on reels to view its paytable,Paytable,"PS-FUN-035, PS-FUN-036",2,Covered,
+GR-52,Game Rules,Game Controls,"Buttons: Play, Stop, Bet, Turbo, Menu, Info, Sound, Close",UI Controls,"PS-FUN-014, PS-FUN-060, PS-FUN-065, PS-FUN-069, PS-FUN-074, PS-FUN-080, PS-FUN-084, PS-FUN-087, PS-UI-002, PS-UI-003, PS-UI-004, PS-UI-005, PS-UI-006, PS-UI-007, PS-UI-008, PS-UI-011, PS-UI-012, PS-UI-014, PS-UI-015, PS-UI-016, PS-UI-029, PS-CMP-014, PS-CMP-015, PS-CMP-016, PS-CMP-017, PS-CMP-018, PS-CMP-019, PS-CMP-020, PS-CMP-021",29,Covered,OBS-19
+GR-53,Game Rules,Additional Info,Malfunction voids all pays and plays,Compliance,"PS-FUN-089, PS-ERR-020",2,Covered,
+GR-54,Game Rules,Additional Info,Theoretical RTP disclosure,Compliance,"PS-FUN-085, PS-MTH-001, PS-UI-036",3,Covered,OBS-09
+GR-55,Game Rules,Additional Info,Buy Bonus RTP disclosure,Compliance,"PS-FUN-085, PS-MTH-005, PS-MTH-006",3,Covered,"OBS-09, OBS-10"
+GR-56,Game Rules,Additional Info,Interrupted game resumes from last recorded action,Recovery,"PS-FUN-081, PS-FEA-010, PS-FEA-011, PS-FEA-022, PS-FEA-023, PS-FEA-044, PS-FEA-051, PS-FEA-054, PS-FEA-055, PS-FEA-058, PS-FEA-059, PS-EDG-028, PS-EDG-029, PS-EDG-030, PS-EDG-031, PS-EDG-033, PS-EDG-034, PS-EDG-035, PS-EDG-036, PS-INT-001, PS-INT-002, PS-INT-003, PS-INT-004, PS-INT-005, PS-INT-006, PS-INT-007, PS-INT-008, PS-INT-009, PS-INT-010, PS-INT-011, PS-INT-012, PS-INT-013, PS-INT-014, PS-INT-015, PS-INT-016, PS-INT-017, PS-INT-018, PS-INT-019, PS-INT-020, PS-INT-021, PS-INT-022, PS-INT-023, PS-INT-024, PS-INT-025, PS-INT-026, PS-INT-027, PS-INT-028, PS-INT-029, PS-INT-030, PS-ERR-003, PS-ERR-004, PS-ERR-005, PS-ERR-006, PS-ERR-007, PS-ERR-008, PS-ERR-009, PS-ERR-010, PS-ERR-011, PS-ERR-012, PS-ERR-013, PS-ERR-014, PS-ERR-015, PS-ERR-016, PS-ERR-017, PS-ERR-018",65,Covered,
+GR-57,Game Rules,Additional Info,Persistent data retained up to 90 days,Recovery,PS-EDG-042,1,Partial,
+GR-58,Game Rules,Additional Info,7-day inactivity may reset game and forfeit unfinished features,Recovery,"PS-FEA-056, PS-FEA-057, PS-INT-022",3,Covered,OBS-23
+GR-59,Game Rules,Additional Info,Pay table ID: Pig Style,Compliance,"PS-FUN-037, PS-FUN-090",2,Covered,OBS-13
+M-01,Math File,"Summary C4:C6, K6","RTP: base 68.924%, FS 28.065%, total 96.989%",RTP,"PS-FUN-085, PS-MTH-001, PS-MTH-002, PS-MTH-003, PS-MTH-004, PS-MTH-007",6,Covered,OBS-14
+M-02,Math File,Summary C9,Hit frequency 31.6018%,Hit Frequency,PS-MTH-008,1,Partial,
+M-03,Math File,"Summary C12, K55:K57",SD 16.80; VI 90/95/99% = 27.64/32.93/43.28,Volatility,"PS-MTH-001, PS-MTH-010",2,Covered,
+M-04,Math File,Summary C10:G11,"Max exposure 1,009,091 cr at bet 20 (50,454.55x), 1 in 1e9",Max Win,"PS-FUN-086, PS-MTH-053",2,Covered,OBS-12
+M-05,Math File,BG Calc R3:V14,"Paytable (credits at bet 20) for AA..LL, 3-6 OAK",Paytable,"PS-FUN-021, PS-FUN-023, PS-FUN-024, PS-FUN-025, PS-FUN-026, PS-FUN-027, PS-FUN-028, PS-FUN-029, PS-FUN-030, PS-FUN-031, PS-FUN-032, PS-FUN-033, PS-FUN-040, PS-FUN-041, PS-FUN-042, PS-FUN-043, PS-FUN-044, PS-MTH-017, PS-MTH-018, PS-MTH-019, PS-MTH-020, PS-MTH-021, PS-MTH-022, PS-MTH-023, PS-MTH-024, PS-MTH-025, PS-EDG-014",27,Covered,"OBS-03, OBS-15"
+M-06,Math File,BG Calc AJ19:AL25,Reel height 2..7 weights Opt0/Opt1 and pattern table,Reels / Ways,"PS-FUN-005, PS-FUN-006, PS-FUN-007, PS-FUN-008, PS-MTH-014, PS-MTH-015, PS-MTH-016",7,Covered,
+M-07,Math File,"BG Calc C3:H3, Z3:AA5",Base Wild on reels 2-5; multiplier x1/x2/x3 weights 10/5/2,Wild,"PS-FUN-045, PS-FUN-046, PS-FUN-048, PS-FUN-049, PS-MTH-027, PS-MTH-028, PS-MTH-029, PS-MTH-030, PS-MTH-031, PS-MTH-032",10,Covered,OBS-02
+M-08,Math File,BG Calc row 15; FG Calc row 15,Bonus on reels 1-6 in base; absent in FS strips; pays 0,Bonus,"PS-FUN-047, PS-FUN-052, PS-FUN-053, PS-MTH-047, PS-MTH-062, PS-FEA-006, PS-FEA-018",7,Covered,OBS-16
+M-09,Math File,BG Calc AE3:AF11,Base reel sets BG1..BG9 weights 23/50/60/2000/475/33/50/50/1000,Reel Sets,"PS-MTH-012, PS-MTH-013, PS-MTH-014",3,Covered,
+M-10,Math File,Summary K42:K51,"FS trigger 1 in 268.89 (BG1 57.10, BG6 2.44)",Free Spins Trigger,"PS-MTH-011, PS-MTH-012",2,Covered,
+M-11,Math File,FG1 Calc,FG1 (Raining): FS 15/18/25/30; wild count 0..6; mult x1/x2/x3 1000/500/189; reels 2-5,Raining Wilds FS,"PS-MTH-033, PS-MTH-036, PS-MTH-042, PS-MTH-043, PS-MTH-044, PS-MTH-045, PS-MTH-048, PS-MTH-049, PS-MTH-063, PS-FEA-013, PS-FEA-014, PS-FEA-035, PS-FEA-037, PS-FEA-039",14,Covered,"OBS-01, OBS-05"
+M-12,Math File,FG2 Calc,FG2 (Sticky): FS 7/12/15/20; new wilds 0..3; mult 8/2/1; size tables; reels 2-5,Sticky Wilds FS,"PS-MTH-034, PS-MTH-036, PS-MTH-038, PS-MTH-039, PS-MTH-040, PS-MTH-041, PS-MTH-050, PS-MTH-051, PS-MTH-052, PS-MTH-063, PS-FEA-001, PS-FEA-002, PS-FEA-025, PS-FEA-027, PS-FEA-028, PS-FEA-031, PS-FEA-032",17,Covered,"OBS-01, OBS-06"
+M-13,Math File,StickyWildMovement,Sticky Wild position/row transition table,Sticky Wilds FS,"PS-MTH-051, PS-FEA-025, PS-FEA-029, PS-FEA-030, PS-FEA-033",5,Covered,OBS-07
+M-14,Math File,Summary C16:D16,Buy cost 100x total bet for FG1 and FG2,Buy Feature,"PS-FUN-057, PS-FUN-058",2,Covered,
+M-15,Math File,"Summary C17:C21, N6:N40","Buy FG1 RTP 97.084%, HF 99.997%, SD 1.618, max 487,402 cr",Buy Feature,"PS-FUN-085, PS-MTH-005, PS-MTH-007, PS-MTH-009, PS-MTH-054, PS-MTH-059, PS-MTH-060, PS-FEA-048, PS-FEA-049",9,Covered,OBS-10
+M-16,Math File,"Summary D17:D21, Q6:Q40","Buy FG2 RTP 97.110%, HF 97.420%, SD 3.711, max 1,674,912 cr",Buy Feature,"PS-FUN-085, PS-MTH-006, PS-MTH-007, PS-MTH-009, PS-MTH-054, PS-MTH-059, PS-MTH-060, PS-FEA-048, PS-FEA-049",9,Covered,"OBS-10, OBS-12"
+M-17,Math File,Buy FG1/FG2 Calc,"Buy mode weights differ from natural FS (wild count, multipliers)",Buy Feature,"PS-MTH-035, PS-MTH-048, PS-MTH-050",3,Covered,OBS-11
+M-18,Math File,Summary K52:Q53,Average FS: 12.372 / 16.158 / 8.590; avg stickies at end,FS Award,"PS-MTH-003, PS-MTH-046",2,Covered,
+M-19,Math File,"Summary K4:K5, BG Calc K19",Bet = 20 credits (Lines Played 20); pay denominator 20,Bet,"PS-FUN-021, PS-FUN-023, PS-FUN-024, PS-FUN-025, PS-FUN-026, PS-FUN-027, PS-FUN-028, PS-FUN-029, PS-FUN-030, PS-FUN-031, PS-FUN-032, PS-FUN-033, PS-FUN-034, PS-MTH-017, PS-MTH-018, PS-MTH-019, PS-MTH-020, PS-MTH-021, PS-MTH-022, PS-MTH-023, PS-MTH-024, PS-MTH-025, PS-MTH-026, PS-MTH-057",24,Covered,
+M-20,Math File,"Summary K2, B5","Metadata: Game Name 'DogHouseMegaways9700', 'Wheel Bonus' label",Math File,"PS-FUN-090, PS-MTH-061",2,Covered,OBS-13
+Gap Analysis,,,,,,,,
+Requirements without coverage,,,0,Filter column H = NOT COVERED,,,,
+Requirements with single test case,,,9,Review for additional negative/boundary cases,,,,
+Math rules without validation,,,0,Math rows M-xx with no linked case,,,,
+Game Rules vs Math conflicts,,,6,See Defect-Observation Log (Type = Spec Conflict),,,,
+Missing / ambiguous specification,,,14,See Defect-Observation Log,,,,
+Test cases depending on spec confirmation,,,40,Expected Result starts with 'Requires Specification/Confirmation',,,,
+"Test cases without a direct Game Rules / Math requirement (industry or platform practice: browser/device, performance, RG/operator, security)",,,,,,,,
+None: every test case carries at least one Ref,,,,,,,,

@@ -1,0 +1,67 @@
+Math Reference (extracted from pig_style_R7_1.xlsx),,,,,,,,,,
+Blue values are inputs copied from the math file (source cell noted). Black values are formulas.,,,,,,,,,,
+Total bet in credits (Summary K5),20,,,,,,,,,
+Example bet (currency),1,,,,,,,,,
+Paytable (BG Calc R3:V14),,,,,,,,,,
+Symbol,6 OAK (cr),5 OAK (cr),4 OAK (cr),3 OAK (cr),6 OAK x bet,5 OAK x bet,4 OAK x bet,3 OAK x bet,6 OAK @ example bet,3 OAK @ example bet
+AA,150,60,40,15,7.5,3,2,0.75,7.5,0.75
+BB,60,30,20,10,3,1.5,1,0.5,3,0.5
+CC,40,20,15,7,2,1,0.75,0.35,2,0.35
+DD,30,15,10,4,1.5,0.75,0.5,0.2,1.5,0.2
+EE,30,10,8,3,1.5,0.5,0.4,0.15,1.5,0.15
+FF,30,10,8,3,1.5,0.5,0.4,0.15,1.5,0.15
+GG,20,6,4,2,1,0.3,0.2,0.1,1,0.1
+HH,20,6,4,2,1,0.3,0.2,0.1,1,0.1
+JJ,20,6,4,2,1,0.3,0.2,0.1,1,0.1
+KK,10,4,2,1,0.5,0.2,0.1,0.05,0.5,0.05
+LL,10,4,2,1,0.5,0.2,0.1,0.05,0.5,0.05
+"Free Spins awards (FG1 Calc AD3:AE6, FG2 Calc AD3:AE6)",,,,,,,,,,
+Bonus count,Raining Wilds (FG1),Sticky Wilds (FG2),,,,,,,,
+3,15,7,,,,,,,,
+4,18,12,,,,,,,,
+5,25,15,,,,,,,,
+6,30,20,,,,,,,,
+Wild multiplier weights,,,,,,,,,,
+Mode (source),x1 weight,x2 weight,x3 weight,x1 %,x2 %,x3 %,Mean multiplier,,,
+Base game (BG Calc Z3:AA5),10,5,2,0.588235294117647,0.294117647058824,0.117647058823529,1.52941176470588,,,
+Raining FG1 (FG1 Calc Z3:AA5),1000,500,189,0.59206631142688,0.29603315571344,0.11190053285968,1.5198342214328,,,
+Buy FG1 (Buy FG1 Calc Z3:AA5),1000,500,189,0.59206631142688,0.29603315571344,0.11190053285968,1.5198342214328,,,
+Sticky FG2 (FG2 Calc Z3:AA5),8,2,1,0.727272727272727,0.181818181818182,0.0909090909090909,1.36363636363636,,,
+Buy FG2 (Buy FG2 Calc Z3:AA5),875,200,100,0.74468085106383,0.170212765957447,0.0851063829787234,1.34042553191489,,,
+Wilds per Free Spin (reels 2-5 only),,,,,,,,,,
+Mode (source),0,1,2,3,4,5,6,P(0 wilds),Mean wilds,
+Raining FG1 (FG1 Calc AI3:AJ9),838,200,500,200,50,25,10,0.459681843115743,1.19857377948437,
+Buy FG1 (Buy FG1 Calc AI3:AJ9),433,200,500,200,50,25,10,0.305359661495064,1.54090267983075,
+Sticky FG2 new per spin (FG2 Calc AI3:AJ6),500,126,50,10,0,0,0,0.728862973760933,0.373177842565598,
+Buy FG2 new per spin (Buy FG2 Calc AI3:AJ6),424,126,50,10,0,0,0,0.695081967213115,0.419672131147541,
+Base game reel set weights (BG Calc AE3:AF11),,,,,,,,,,
+Reel set,Weight,Probability,FS trigger odds (Summary K43:K51),,,,,,,
+BG1,23,0.00614808874632451,1 in 57.10,,,,,,,
+BG2,50,0.0133654103180968,none,,,,,,,
+BG3,60,0.0160384923817161,none,,,,,,,
+BG4,2000,0.534616412723871,none,,,,,,,
+BG5,475,0.126971398021919,none,,,,,,,
+BG6,33,0.00882117080994387,1 in 2.44,,,,,,,
+BG7,50,0.0133654103180968,none,,,,,,,
+BG8,50,0.0133654103180968,none,,,,,,,
+BG9,1000,0.267308206361935,none,,,,,,,
+Reel heights (BG Calc AJ20:AL25),,,,,,,,,,
+Rows,Opt0 weight,Opt1 weight,Opt0 %,Opt1 %,,,,,,
+2,100,25,0.222222222222222,0.0625,,,,,,
+3,200,75,0.444444444444444,0.1875,,,,,,
+4,75,75,0.166666666666667,0.1875,,,,,,
+5,50,75,0.111111111111111,0.1875,,,,,,
+6,15,75,0.0333333333333333,0.1875,,,,,,
+7,10,75,0.0222222222222222,0.1875,,,,,,
+Key statistics (Summary sheet),,,,,,,,,,
+Metric,Base game (whole),Buy FG1,Buy FG2,Unit / note,,,,,,
+Total RTP,0.9698864,0.9708362,0.9710962,%,,,,,,
+Base component RTP,0.6892386,0.0213131,0.0213002,%,,,,,,
+FS component RTP,0.2806479,0.9495232,0.949796,%,,,,,,
+Hit frequency,0.316018,0.9999702,0.9741966,%,,,,,,
+SD (x bet / x cost),16.802387755102,1.61841326530612,3.71081632653061,multiple,,,,,,
+Max exposure (credits),1009091,487402,1674912,credits at bet 20 (Buy: cost 2000),,,,,,
+FS trigger odds (1 in),268.89187,1,1,spins,,,,,,
+Avg FS awarded,12.372,16.15818,8.59024,spins,,,,,,
+Buy cost (x bet),,100,100,x total bet,,,,,,
+Max exposure (x total bet),50454.55,24370.1,83745.6,Buy values relative to base bet (cost 2000 = 100 x 20),,,,,,

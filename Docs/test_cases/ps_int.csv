@@ -1,0 +1,45 @@
+Test Case ID,Module,Feature,Sub-Feature,Test Scenario,Preconditions,Test Data,Detailed Test Steps,Expected Result,Actual Result,Priority,Severity,Test Type,Automation Candidate,Environment,Browser/Device,Status,Defect ID,Remarks
+PS-INT-001,Interruption,Interruption,Refresh,Refresh: during base spin,Spin in progress,Bet 1.00,"1. Press Play
+2. Refresh before reels stop
+3. Reload",One debit; result of interrupted round shown or in history; win credited once; no new round,,P0,Critical,Recovery,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-56
+PS-INT-002,Interruption,Interruption,Refresh,Refresh: during win presentation,Win presenting,Bet 1.00,1. Refresh,Win credited once; balance correct,,P0,Critical,Recovery,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-56
+PS-INT-003,Interruption,Interruption,Refresh,Refresh: during Free Spins,FS spin 4/15,Bet 1.00,1. Refresh,Resume at correct spin; total win and wilds preserved,,P0,Critical,Recovery,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-56
+PS-INT-004,Interruption,Interruption,Refresh,Refresh: on FS choice screen,Choice screen,Bet 1.00,1. Refresh,Choice screen restored,,P0,Critical,Recovery,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-56
+PS-INT-005,Interruption,Interruption,Refresh,Refresh: immediately after Buy confirm,Buy confirmed,Bet 1.00,1. Refresh,Single debit; feature resumes,,P0,Critical,Recovery,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-56
+PS-INT-006,Interruption,Interruption,Close/reopen,Close/reopen: during base spin,Spin,Bet 1.00,"1. Close tab
+2. Reopen",Round completed server-side; balance and history correct,,P0,Critical,Recovery,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-56
+PS-INT-007,Interruption,Interruption,Close/reopen,Close/reopen: during FS,FS,Bet 1.00,"1. Close
+2. Reopen",FS resumes,,P0,Critical,Recovery,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-56
+PS-INT-008,Interruption,Interruption,Network loss,Network loss: before spin request,Offline,Bet 1.00,"1. Disable network
+2. Press Play",Error/reconnect message; no debit; no round,,P0,Critical,Recovery,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-56
+PS-INT-009,Interruption,Interruption,Network loss,"Network loss: after request sent, before response",Network drops after request,Bet 1.00,"1. Spin
+2. Drop network
+3. Restore",On reconnect state synced; one debit; result displayed; no duplicate,,P0,Critical,Recovery,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-56
+PS-INT-010,Interruption,Interruption,Network loss,Network loss: during FS,FS,Bet 1.00,"1. Drop 60s
+2. Restore",FS continues from last server state,,P0,Critical,Recovery,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-56
+PS-INT-011,Interruption,Interruption,Network loss,Network loss: long outage (10 min),Base,Bet 1.00,"1. Drop 10 min
+2. Restore",Session handling per operator; state recoverable after relaunch,,P1,High,Recovery,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-56
+PS-INT-012,Interruption,Interruption,App background,App background: iOS during spin,Spin,Bet 1.00,"1. Home button
+2. Return after 30s",Spin completes; state consistent,,P0,Critical,Recovery,Yes,QA / Staging (Game Client + RGS),Mobile (iOS Safari / Android Chrome),Not Run,,Ref: GR-56
+PS-INT-013,Interruption,Interruption,App background,App background: Android during FS,FS,Bet 1.00,"1. Switch app
+2. Return after 2 min",FS paused/continues correctly,,P0,Critical,Recovery,Yes,QA / Staging (Game Client + RGS),Mobile (iOS Safari / Android Chrome),Not Run,,Ref: GR-56
+PS-INT-014,Interruption,Interruption,Device lock,Device lock: during Auto Spin,Auto 20,Bet 1.00,"1. Lock screen 1 min
+2. Unlock",Requires Specification/Confirmation: Expected: auto play pauses while hidden or continues per spec; no lost rounds,,P1,High,Recovery,Yes,QA / Staging (Game Client + RGS),Mobile (iOS Safari / Android Chrome),Not Run,,Ref: GR-56
+PS-INT-015,Interruption,Interruption,Incoming call,Incoming call: during FS,FS on phone,Bet 1.00,"1. Receive call
+2. End call
+3. Return",FS resumes; audio restored,,P1,High,Recovery,Yes,QA / Staging (Game Client + RGS),Mobile (iOS Safari / Android Chrome),Not Run,,Ref: GR-56
+PS-INT-016,Interruption,Interruption,Device rotation,Device rotation: during win,Win,Bet 1.00,1. Rotate,Presentation continues; values correct,,P1,Medium,Recovery,Yes,QA / Staging (Game Client + RGS),Mobile (iOS Safari / Android Chrome),Not Run,,Ref: GR-56
+PS-INT-017,Interruption,Interruption,Session expiration,Session expiration: mid FS,FS; expire session,Bet 1.00,1. Spin next FS,Re-auth path; FS resumes after relaunch,,P0,Critical,Recovery,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-56
+PS-INT-018,Interruption,Interruption,Wallet credit failure,Wallet credit failure: after win,Simulate wallet credit fail,Bet 1.00,1. Spin win,Win not lost; retry/rollback per RGS spec; player informed; balance consistent after recovery,,P0,Critical,Recovery,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-56
+PS-INT-019,Interruption,Interruption,Wallet debit failure,Wallet debit failure,Simulate wallet debit fail,Bet 1.00,1. Spin,Round not played; no outcome shown; no debit,,P0,Critical,Recovery,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-56
+PS-INT-020,Interruption,Interruption,API timeout,API timeout: spin,Server delay > timeout,Bet 1.00,1. Spin,Timeout message; state recovered on reload; no double debit,,P0,Critical,Recovery,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-56
+PS-INT-021,Interruption,Interruption,Server 500,Server 500: spin,Mock 500,Bet 1.00,1. Spin,Error message; no debit or rollback; game recoverable,,P0,Critical,Recovery,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-56
+PS-INT-022,Interruption,Interruption,Reload,Reload: during unfinished FS after 24h,FS unfinished,Bet 1.00,1. Relaunch after 24h,Resume,,P1,High,Recovery,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-56, GR-58"
+PS-INT-023,Interruption,Interruption,Reload,Reload: immediately after feature trigger,3 BN landed,Bet 1.00,1. Refresh before choice screen appears,Choice screen shown with correct awards,,P0,Critical,Recovery,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-56
+PS-INT-024,Interruption,Interruption,Reload,Reload: during Sticky FS with 5 stickies,Sticky FS,Bet 1.00,1. Refresh,All 5 stickies restored with positions and multipliers,,P0,Critical,Recovery,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-56, GR-08"
+PS-INT-025,Interruption,Interruption,Reload,Reload: during Raining FS mid-drop,Raining drop animating,Bet 1.00,1. Refresh,Spin result restored once,,P0,Critical,Recovery,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-56
+PS-INT-026,Interruption,Interruption,Reload,Reload: during max win,Cap reached,Bet 1.00,1. Refresh on max win popup,Cap credited once,,P0,Critical,Recovery,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-56, GR-29"
+PS-INT-027,Interruption,Interruption,Reload,Reload: during Auto Spin,"Auto 50, 10 played",Bet 1.00,1. Refresh,Requires Specification/Confirmation: Expected: auto play stops after reload; no further rounds without player action,,P1,High,Recovery,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-56, GR-43 | OBS-24"
+PS-INT-028,Interruption,Interruption,Browser crash,Browser crash: during FS,Kill browser process,Bet 1.00,1. Relaunch,FS resumes,,P0,Critical,Recovery,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-56
+PS-INT-029,Interruption,Interruption,Duplicate prevention,Duplicate prevention: resumed round,Any recovery case,Bet 1.00,1. Compare RGS rounds vs history,No duplicate round IDs; no duplicate debits/credits; feature awarded once,,P0,Critical,Recovery,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-56
+PS-INT-030,Interruption,Interruption,Suspended state,Suspended state: resume point,Interrupted at FS spin N,Bet 1.00,1. Relaunch,Resumes from last successfully recorded action (spin N+1 or result of N),,P0,Critical,Recovery,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-56

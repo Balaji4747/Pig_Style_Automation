@@ -1,0 +1,238 @@
+Test Case ID,Module,Feature,Sub-Feature,Test Scenario,Preconditions,Test Data,Detailed Test Steps,Expected Result,Actual Result,Priority,Severity,Test Type,Automation Candidate,Environment,Browser/Device,Status,Defect ID,Remarks
+PS-FUN-001,Functional,Game Launch,Initial load,Verify the game launches from the operator lobby in real-money mode and lands on the base game with correct initial state,Valid player session with funded wallet; game enabled for operator,Balance: 500.00 EUR; default bet as configured,"1. Log in to the operator lobby
+2. Launch Pig Style
+3. Wait for the loader to complete
+4. Observe reels, bet field, balance field and win field",Loader completes without error; 6 reels displayed; balance equals wallet balance (500.00); bet field shows configured default bet; win field shows 0.00 or blank; Play button enabled,,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-01, GR-19, GR-21"
+PS-FUN-002,Functional,Game Launch,Splash screen,Verify the splash/intro screen displays on first launch and can be dismissed to reach the base game,First launch for the player (no prior splash preference),N/A,"1. Launch the game
+2. Observe splash screen
+3. Press Continue/Play on the splash
+4. Reopen game after enabling 'do not show' option in Splash Screen Settings (if present)",Splash shown on first launch and dismisses to base game; when disabled via Splash Screen Settings the game opens directly to base game on next launch,,P2,Medium,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-46
+PS-FUN-003,Functional,Game Launch,Currency,Verify all monetary fields render in the session currency,"Sessions available in EUR, RON and one non-decimal currency if supported","Currencies: EUR, RON","1. Launch the game with EUR session
+2. Check bet, balance, win, paytable and Buy cost values
+3. Repeat with RON session",All monetary values show the session currency symbol/code with correct decimal precision; no mixing of currencies; paytable values recalculated in session currency,,P1,High,Functional,Partial,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-19
+PS-FUN-004,Functional,Game Launch,Demo / Fun mode,Verify the game launches in fun mode with virtual balance and no wallet transactions,Fun mode URL available from operator,Fun balance as configured by RGS,"1. Launch game in fun mode
+2. Place 5 spins
+3. Check RGS/wallet logs",Game playable with virtual balance; no debit/credit calls to the real-money wallet; fun mode indicator shown if required by operator,,P2,Medium,Functional,Partial,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-19
+PS-FUN-005,Functional,Base Game,Reel layout,Verify the base game shows 6 reels and each reel displays between 2 and 7 symbols per spin,Base game loaded,Observe 50 spins,"1. Spin 50 times at any bet
+2. For each spin, count visible symbol rows on every reel
+3. Record min and max per reel",Every reel shows a symbol count in the range 2..7 on every spin; no reel shows 1 or 8+ positions; reel heights vary independently per reel,,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-01, GR-02, M-06"
+PS-FUN-006,Functional,Base Game,Ways counter,Verify the ways-to-win counter equals the product of the symbol counts on all 6 reels,Base game loaded; ways counter visible,"Example rows [2,3,4,5,6,7] => 2x3x4x5x6x7 = 5,040 ways","1. Spin until a result is observed
+2. Count rows on each reel
+3. Multiply counts
+4. Compare to on-screen ways counter","Ways counter equals product of reel heights for every spin (e.g. 5,040 for [2,3,4,5,6,7]); counter updates when the reels stop",,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-01, GR-02, M-06"
+PS-FUN-007,Functional,Base Game,Ways counter,"Verify the maximum ways value 117,649 is displayed when all reels show 7 symbols",Test tool / forced outcome to set all reel heights to 7,"Rows [7,7,7,7,7,7] => 7^6 = 117,649","1. Force reel heights 7 on all reels
+2. Spin
+3. Read ways counter","Ways counter shows 117,649 formatted with thousands separator; no truncation",,P1,High,Functional,Yes,QA / Staging (Game Client + RGS),Desktop Chrome (latest),Not Run,,"Ref: GR-01, M-06"
+PS-FUN-008,Functional,Base Game,Ways counter,Verify the minimum ways value 64 is displayed when all reels show 2 symbols,Test tool / forced outcome,"Rows [2,2,2,2,2,2] => 2^6 = 64","1. Force reel heights 2 on all reels
+2. Spin
+3. Read ways counter",Ways counter shows 64,,P2,Medium,Functional,Yes,QA / Staging (Game Client + RGS),Desktop Chrome (latest),Not Run,,"Ref: GR-01, M-06"
+PS-FUN-009,Functional,Spin,Start spin,Verify pressing the Play button starts exactly one game round at the selected bet,Balance >= selected bet,Bet: 1.00; Balance: 100.00,"1. Note balance
+2. Press Play once
+3. Wait for round to complete",One round starts; balance reduces by exactly 1.00 at spin start; one bet transaction in RGS; reels spin and stop; any win added after evaluation,,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-22
+PS-FUN-010,Functional,Spin,Space bar,Verify pressing the space bar starts a game round on desktop,Desktop browser; game canvas focused; no popup open,Bet: 1.00,"1. Click on the game area to focus
+2. Press space bar once
+3. Observe round",One round starts exactly as with the Play button; balance debited once,,P1,Medium,Functional,Yes,QA / Staging (Game Client + RGS),Desktop Chrome (latest),Not Run,,Ref: GR-44
+PS-FUN-011,Functional,Spin,Space bar,"Verify the space bar does not start a spin while a menu, bet panel, paytable or Buy Feature interface is open",Desktop,Bet: 1.00,"1. Open bet panel and press space
+2. Open Menu and press space
+3. Open Game Info and press space
+4. Open Buy Feature interface and press space",No spin starts and no balance change in any case; open panel remains stable,,P1,High,Negative,Yes,QA / Staging (Game Client + RGS),Desktop Chrome (latest),Not Run,,Ref: GR-44
+PS-FUN-012,Functional,Spin,Quick Stop,Verify pressing the spin button again during reel spin stops the reels early without changing the outcome,Quick Stop available in jurisdiction,Bet: 1.00; compare result with RGS response,"1. Press Play
+2. Immediately press the spin button again
+3. Compare final reel result and win with RGS round response",Reels stop early; displayed symbols and win identical to RGS outcome; no second round started; no extra debit,,P1,High,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-31
+PS-FUN-013,Functional,Spin,Quick Stop,Verify Quick Stop is not available when disabled by jurisdiction configuration,Operator/jurisdiction config with Quick Stop disabled,Jurisdiction flag: quickStop=false,"1. Launch game with Quick Stop disabled
+2. Press Play
+3. Press spin button again while reels spin",Reels complete full spin duration; second press ignored; no second round started,,P1,High,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-31
+PS-FUN-014,Functional,Bet,Bet panel,Verify the Bet button opens the bet panel showing available bet options and the current bet,Base game idle,"Bet ladder as configured (values TBC, see OBS-09)","1. Press Bet button
+2. Observe options
+3. Close panel",Bet panel opens; all configured bet levels listed or reachable via +/-; current bet highlighted; closing returns to base game with unchanged bet,,P1,High,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-20, GR-45, GR-52"
+PS-FUN-015,Functional,Bet,Increase/Decrease,Verify bet increase and decrease controls step through every configured bet level in order,Bet panel open,Full bet ladder from config,"1. Set bet to minimum
+2. Press increase repeatedly until maximum, recording each value
+3. Press decrease until minimum",Each press moves exactly one level; sequence matches config ladder in both directions; bet field updates immediately,,P1,High,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-20, GR-28"
+PS-FUN-016,Functional,Bet,Limits,Verify the increase control is disabled at maximum bet and decrease control disabled at minimum bet,Bet panel open,Min Bet / Max Bet: Requires Specification/Confirmation: values are {{text1}} in rules,"1. Set bet to max; try increase
+2. Set bet to min; try decrease",Increase disabled/no effect at max; decrease disabled/no effect at min; bet never leaves configured range,,P0,Critical,Boundary,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-20, GR-28 | OBS-09"
+PS-FUN-017,Functional,Bet,Bet persistence,Verify the selected bet is retained after closing the bet panel and between consecutive spins,Base game idle,Bet changed from 1.00 to 2.00,"1. Change bet to 2.00
+2. Close panel
+3. Spin 3 times",All 3 rounds debited 2.00; bet field shows 2.00 throughout,,P1,High,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-20, GR-21"
+PS-FUN-018,Functional,Bet,Bet lock,Verify bet controls are disabled while reels are spinning and during win presentation,Base game,Bet: 1.00,"1. Press Play
+2. While reels spin, attempt to open bet panel / change bet
+3. During win presentation attempt to change bet",Bet controls disabled or ignored during spin; bet of current round unchanged in RGS record,,P0,Critical,Negative,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-20, GR-22"
+PS-FUN-019,Functional,Bet,Bet lock in Free Spins,Verify bet cannot be changed during Free Spins,Free Spins in progress (forced trigger),Trigger bet: 1.00,"1. Trigger Free Spins
+2. During feature attempt to open bet panel",Bet controls disabled for the whole feature; all Free Spins evaluated at 1.00,,P0,Critical,Negative,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-15
+PS-FUN-020,Functional,Balance,Debit,Verify the balance is debited by exactly the bet amount once per paid spin,Funded balance,Balance 100.00; Bet 0.20 (or min configured),"1. Note balance
+2. Spin once with a losing result (forced)
+3. Note balance",Balance = 100.00 - 0.20 = 99.80; one debit transaction,,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-22
+PS-FUN-021,Functional,Balance,Credit,Verify a base game win is credited to the balance and shown in the win field,Forced winning outcome,Bet 1.00; outcome AA on reels 1-3 (1 way) => win 1.00 x 15/20 = 0.75,"1. Note balance B0
+2. Spin with forced outcome
+3. Read win field and balance",Win field 0.75; final balance = B0 - 1.00 + 0.75; RGS win transaction amount 0.75,,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-04, GR-25, M-05, M-19"
+PS-FUN-022,Functional,Balance,Display sync,Verify displayed balance matches the wallet balance after each round,Wallet admin access,10 consecutive rounds,"1. Play 10 rounds
+2. After each round compare in-game balance with wallet backend balance",Values match to the cent after every round,,P0,Critical,Integration,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-19
+PS-FUN-023,Functional,Paytable,Symbol AA,"Verify paytable values for symbol AA for 3, 4, 5 and 6 of a kind at the current bet",Game Info / paytable open,"Math pays (credits @ bet 20): 6=150, 5=60, 4=40, 3=15. At bet 1.00 => 6=7.50, 5=3.00, 4=2.00, 3=0.75","1. Set bet 1.00
+2. Open paytable
+3. Read values for AA
+4. Change bet to 2.00 and re-read","At 1.00: 6x=7.50, 5x=3.00, 4x=2.00, 3x=0.75; at 2.00 all values double; no value shown for 2-of-a-kind (math has no 2oak pay, see OBS-03)",,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-50, M-05, M-19 | OBS-03, OBS-15"
+PS-FUN-024,Functional,Paytable,Symbol BB,"Verify paytable values for symbol BB for 3, 4, 5 and 6 of a kind at the current bet",Game Info / paytable open,"Math pays (credits @ bet 20): 6=60, 5=30, 4=20, 3=10. At bet 1.00 => 6=3.00, 5=1.50, 4=1.00, 3=0.50","1. Set bet 1.00
+2. Open paytable
+3. Read values for BB
+4. Change bet to 2.00 and re-read","At 1.00: 6x=3.00, 5x=1.50, 4x=1.00, 3x=0.50; at 2.00 all values double; no value shown for 2-of-a-kind (math has no 2oak pay, see OBS-03)",,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-50, M-05, M-19 | OBS-03, OBS-15"
+PS-FUN-025,Functional,Paytable,Symbol CC,"Verify paytable values for symbol CC for 3, 4, 5 and 6 of a kind at the current bet",Game Info / paytable open,"Math pays (credits @ bet 20): 6=40, 5=20, 4=15, 3=7. At bet 1.00 => 6=2.00, 5=1.00, 4=0.75, 3=0.35","1. Set bet 1.00
+2. Open paytable
+3. Read values for CC
+4. Change bet to 2.00 and re-read","At 1.00: 6x=2.00, 5x=1.00, 4x=0.75, 3x=0.35; at 2.00 all values double; no value shown for 2-of-a-kind (math has no 2oak pay, see OBS-03)",,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-50, M-05, M-19 | OBS-03, OBS-15"
+PS-FUN-026,Functional,Paytable,Symbol DD,"Verify paytable values for symbol DD for 3, 4, 5 and 6 of a kind at the current bet",Game Info / paytable open,"Math pays (credits @ bet 20): 6=30, 5=15, 4=10, 3=4. At bet 1.00 => 6=1.50, 5=0.75, 4=0.50, 3=0.20","1. Set bet 1.00
+2. Open paytable
+3. Read values for DD
+4. Change bet to 2.00 and re-read","At 1.00: 6x=1.50, 5x=0.75, 4x=0.50, 3x=0.20; at 2.00 all values double; no value shown for 2-of-a-kind (math has no 2oak pay, see OBS-03)",,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-50, M-05, M-19 | OBS-03, OBS-15"
+PS-FUN-027,Functional,Paytable,Symbol EE,"Verify paytable values for symbol EE for 3, 4, 5 and 6 of a kind at the current bet",Game Info / paytable open,"Math pays (credits @ bet 20): 6=30, 5=10, 4=8, 3=3. At bet 1.00 => 6=1.50, 5=0.50, 4=0.40, 3=0.15","1. Set bet 1.00
+2. Open paytable
+3. Read values for EE
+4. Change bet to 2.00 and re-read","At 1.00: 6x=1.50, 5x=0.50, 4x=0.40, 3x=0.15; at 2.00 all values double; no value shown for 2-of-a-kind (math has no 2oak pay, see OBS-03)",,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-50, M-05, M-19 | OBS-03, OBS-15"
+PS-FUN-028,Functional,Paytable,Symbol FF,"Verify paytable values for symbol FF for 3, 4, 5 and 6 of a kind at the current bet",Game Info / paytable open,"Math pays (credits @ bet 20): 6=30, 5=10, 4=8, 3=3. At bet 1.00 => 6=1.50, 5=0.50, 4=0.40, 3=0.15","1. Set bet 1.00
+2. Open paytable
+3. Read values for FF
+4. Change bet to 2.00 and re-read","At 1.00: 6x=1.50, 5x=0.50, 4x=0.40, 3x=0.15; at 2.00 all values double; no value shown for 2-of-a-kind (math has no 2oak pay, see OBS-03)",,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-50, M-05, M-19 | OBS-03, OBS-15"
+PS-FUN-029,Functional,Paytable,Symbol GG,"Verify paytable values for symbol GG for 3, 4, 5 and 6 of a kind at the current bet",Game Info / paytable open,"Math pays (credits @ bet 20): 6=20, 5=6, 4=4, 3=2. At bet 1.00 => 6=1.00, 5=0.30, 4=0.20, 3=0.10","1. Set bet 1.00
+2. Open paytable
+3. Read values for GG
+4. Change bet to 2.00 and re-read","At 1.00: 6x=1.00, 5x=0.30, 4x=0.20, 3x=0.10; at 2.00 all values double; no value shown for 2-of-a-kind (math has no 2oak pay, see OBS-03)",,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-50, M-05, M-19 | OBS-03, OBS-15"
+PS-FUN-030,Functional,Paytable,Symbol HH,"Verify paytable values for symbol HH for 3, 4, 5 and 6 of a kind at the current bet",Game Info / paytable open,"Math pays (credits @ bet 20): 6=20, 5=6, 4=4, 3=2. At bet 1.00 => 6=1.00, 5=0.30, 4=0.20, 3=0.10","1. Set bet 1.00
+2. Open paytable
+3. Read values for HH
+4. Change bet to 2.00 and re-read","At 1.00: 6x=1.00, 5x=0.30, 4x=0.20, 3x=0.10; at 2.00 all values double; no value shown for 2-of-a-kind (math has no 2oak pay, see OBS-03)",,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-50, M-05, M-19 | OBS-03, OBS-15"
+PS-FUN-031,Functional,Paytable,Symbol JJ,"Verify paytable values for symbol JJ for 3, 4, 5 and 6 of a kind at the current bet",Game Info / paytable open,"Math pays (credits @ bet 20): 6=20, 5=6, 4=4, 3=2. At bet 1.00 => 6=1.00, 5=0.30, 4=0.20, 3=0.10","1. Set bet 1.00
+2. Open paytable
+3. Read values for JJ
+4. Change bet to 2.00 and re-read","At 1.00: 6x=1.00, 5x=0.30, 4x=0.20, 3x=0.10; at 2.00 all values double; no value shown for 2-of-a-kind (math has no 2oak pay, see OBS-03)",,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-50, M-05, M-19 | OBS-03, OBS-15"
+PS-FUN-032,Functional,Paytable,Symbol KK,"Verify paytable values for symbol KK for 3, 4, 5 and 6 of a kind at the current bet",Game Info / paytable open,"Math pays (credits @ bet 20): 6=10, 5=4, 4=2, 3=1. At bet 1.00 => 6=0.50, 5=0.20, 4=0.10, 3=0.05","1. Set bet 1.00
+2. Open paytable
+3. Read values for KK
+4. Change bet to 2.00 and re-read","At 1.00: 6x=0.50, 5x=0.20, 4x=0.10, 3x=0.05; at 2.00 all values double; no value shown for 2-of-a-kind (math has no 2oak pay, see OBS-03)",,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-50, M-05, M-19 | OBS-03, OBS-15"
+PS-FUN-033,Functional,Paytable,Symbol LL,"Verify paytable values for symbol LL for 3, 4, 5 and 6 of a kind at the current bet",Game Info / paytable open,"Math pays (credits @ bet 20): 6=10, 5=4, 4=2, 3=1. At bet 1.00 => 6=0.50, 5=0.20, 4=0.10, 3=0.05","1. Set bet 1.00
+2. Open paytable
+3. Read values for LL
+4. Change bet to 2.00 and re-read","At 1.00: 6x=0.50, 5x=0.20, 4x=0.10, 3x=0.05; at 2.00 all values double; no value shown for 2-of-a-kind (math has no 2oak pay, see OBS-03)",,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-50, M-05, M-19 | OBS-03, OBS-15"
+PS-FUN-034,Functional,Paytable,Bet scaling,Verify all paytable values scale linearly when bet changes,Paytable open,"Bets: min, 1.00, max","1. Open paytable at min bet and record all values
+2. Repeat at 1.00 and at max",Each value = bet x pay(credits)/20; ratios between bets exactly equal bet ratios; rounding per currency precision,,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-04, GR-50, M-19"
+PS-FUN-035,Functional,Paytable,Symbol tap,Verify selecting a symbol on the reels shows that symbol's paytable information,"Base game idle, reels stopped",Any visible symbol,"1. Tap/click a symbol on the reels
+2. Read popup
+3. Tap a Wild and a Bonus symbol",Popup shows the correct symbol and its 3-6 OAK payouts at current bet; Wild/Bonus show their description; popup closes on tap outside/close,,P2,Medium,Functional,Partial,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-51
+PS-FUN-036,Functional,Paytable,Symbol tap lock,Verify symbol paytable popup cannot be opened while reels are spinning or during feature transitions,Spin in progress,N/A,"1. Press Play
+2. Tap a reel symbol while spinning",No popup opens; spin unaffected,,P3,Low,Negative,Partial,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-51
+PS-FUN-037,Functional,Paytable,Content,"Verify paytable content describes Wild, Bonus, both Free Spins options, Buy Free Spins and Megaways mechanics consistent with game behaviour",Game Info open,Approved game rules document,"1. Open Game Info
+2. Compare every section against approved rules
+3. Compare against observed behaviour",Content matches approved rules; no placeholder text ({{text1}}); no reference to paylines if game is ways-based,,P0,High,Functional,No,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-48, GR-59 | OBS-04, OBS-09"
+PS-FUN-038,Functional,Win Evaluation,Left to right,Verify wins pay only for matching symbols on adjacent reels starting from reel 1,Forced outcomes,"Case A: BB on R1,R2,R3 => pays. Case B: BB on R2,R3,R4 (not R1) => no pay","1. Force Case A and spin
+2. Force Case B and spin",Case A pays 1.00 x 10/20 = 0.50 at bet 1.00; Case B pays 0.00,,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop Chrome (latest),Not Run,,"Ref: GR-03, GR-24"
+PS-FUN-039,Functional,Win Evaluation,Adjacency break,Verify a combination stops at the first reel without the symbol (or substituting Wild),Forced outcome,"AA on R1,R2,R3, no AA/WC on R4, AA on R5,R6","1. Force outcome
+2. Spin",Paid as 3 OAK only: 0.75 at bet 1.00; reels 5-6 not counted,,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop Chrome (latest),Not Run,,Ref: GR-03
+PS-FUN-040,Functional,Win Evaluation,Ways multiplication,Verify a win is multiplied by the number of ways (count of symbol on each contributing reel),Forced outcome,"KK x2 on R1, x1 on R2, x3 on R3, none on R4 => 2x1x3 = 6 ways x 3oak KK (1 cr) => 6 x 1.00 x 1/20 = 0.30","1. Force outcome
+2. Spin at bet 1.00
+3. Read win",Total win 0.30; win presentation highlights all 6 KK positions,,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop Chrome (latest),Not Run,,"Ref: GR-01, GR-03, M-05 | OBS-04"
+PS-FUN-041,Functional,Win Evaluation,Minimum combination,Verify 2 matching symbols from reel 1 do not pay for any symbol,Forced outcome,"AA on R1,R2 only (highest symbol)","1. Force outcome
+2. Spin",Requires Specification/Confirmation: Math pays 3 OAK minimum for all symbols (no 2 OAK pay). Rules state 2+ high-value symbols pay. Expected per math: win 0.00. Raise discrepancy OBS-03,,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop Chrome (latest),Not Run,,"Ref: GR-23, M-05 | OBS-03"
+PS-FUN-042,Functional,Win Evaluation,Multiple symbol wins,Verify multiple different symbol wins in one spin are summed,Forced outcome,AA 3oak (1 way) + KK 3oak (2 ways) at bet 1.00 => 0.75 + 2 x 0.05 = 0.85,"1. Force outcome
+2. Spin",Total win 0.85; each combination presented; win field shows total,,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop Chrome (latest),Not Run,,"Ref: GR-25, M-05"
+PS-FUN-043,Functional,Win Evaluation,Highest combination,Verify only the longest combination for a given symbol/way is paid (no double pay of 3oak inside a 4oak),Forced outcome,CC on R1-R4 (1 way),"1. Force outcome
+2. Spin at bet 1.00",Paid as 4 OAK only: 15/20 = 0.75; not 0.75 + 0.35,,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop Chrome (latest),Not Run,,"Ref: GR-26, GR-27, M-05"
+PS-FUN-044,Functional,Win Evaluation,Higher match pays more,Verify for every symbol that pay(n+1 OAK) > pay(n OAK),Math paytable,Paytable from M-05,1. For each symbol compare 3/4/5/6 OAK pays in paytable,Strictly increasing for all symbols (e.g. KK 1<2<4<10),,P2,Low,Functional,Yes,QA / Staging (Game Client + RGS),N/A (RGS / Simulation),Not Run,,"Ref: GR-27, M-05"
+PS-FUN-045,Functional,Wild,Base game wild presence,"Verify Wild symbols can appear in the base game only on reels 2, 3, 4 and 5",Log/replay access over a large sample (or reel strip review),BG reel strips: WC count 0 on R1 and R6,"1. Review BG1-BG9 reel strips
+2. Play 500 spins and log Wild positions",No Wild ever lands on reel 1 or reel 6 in base game,,P0,High,Functional,Yes,QA / Staging (Game Client + RGS),N/A (RGS / Simulation),Not Run,,Ref: M-07 | OBS-02
+PS-FUN-046,Functional,Wild,Substitution,Verify Wild substitutes for all paying symbols to complete a combination,Forced outcome,"AA R1, WC(x1) R2, AA R3 at bet 1.00 => 0.75","1. Force outcome
+2. Spin",Requires Specification/Confirmation: Rules do not describe the base game Wild or what it substitutes for. Expected per math: AA 3oak paid 0.75 (x1),,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop Chrome (latest),Not Run,,Ref: M-07 | OBS-02
+PS-FUN-047,Functional,Wild,Bonus not substituted,Verify Wild does not substitute for the Bonus symbol,Forced outcome,2 BN + 1 WC in view,"1. Force outcome
+2. Spin","Requires Specification/Confirmation: Expected (industry default, math BN pay 0): Free Spins NOT triggered; confirm rule wording",,P0,Critical,Negative,Yes,QA / Staging (Game Client + RGS),Desktop Chrome (latest),Not Run,,"Ref: GR-14, M-08 | OBS-02"
+PS-FUN-048,Functional,Wild,Base game multiplier,Verify base game Wild multipliers are applied to the way they participate in,Forced outcome,"AA R1, WC x2 R2, AA R3 at bet 1.00 => 0.75 x 2 = 1.50","1. Force outcome with WC x2
+2. Spin",Requires Specification/Confirmation: Math defines base game Wild multiplier x1/x2/x3 (weights 10/5/2); rules silent. Expected per math: 1.50,,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop Chrome (latest),Not Run,,"Ref: M-07, GR-13 | OBS-02"
+PS-FUN-049,Functional,Wild,Only wilds,Verify a line of only Wilds (no paying symbol from reel 1) does not pay,Forced outcome,Reel 1 has no match; WC on R2-R5,"1. Force outcome
+2. Spin","No win awarded from Wilds alone (Wild cannot appear on reel 1, so a wild-only combination is impossible); win 0.00 for that way",,P2,Medium,Negative,Yes,QA / Staging (Game Client + RGS),Desktop Chrome (latest),Not Run,,Ref: M-07 | OBS-02
+PS-FUN-050,Functional,Bonus Symbol,Trigger,Verify 3 Bonus symbols anywhere on the reels trigger Free Spins,Forced outcome,"3 BN on R1, R4, R6 (non-adjacent)","1. Force outcome
+2. Spin",Free Spins triggered; FS type selection screen shown,,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-14, GR-16"
+PS-FUN-051,Functional,Bonus Symbol,Non-trigger,Verify 2 Bonus symbols do not trigger Free Spins,Forced outcome,2 BN on R1 and R2,"1. Force outcome
+2. Spin",No feature triggered; normal round result; no FS selection screen,,P0,Critical,Negative,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-14
+PS-FUN-052,Functional,Bonus Symbol,Reels,Verify Bonus symbol can land on all 6 reels in the base game,Reel strip review / log sample,BG reel strips: BN present on R1-R6,"1. Review BG reel strips
+2. Log BN landing reels over sample",BN observed on each of reels 1-6,,P2,Medium,Functional,Yes,QA / Staging (Game Client + RGS),N/A (RGS / Simulation),Not Run,,Ref: M-08
+PS-FUN-053,Functional,Bonus Symbol,No pay,Verify Bonus symbols do not award a line/ways pay,Forced outcome,2 BN on R1-R2 with no other win,"1. Force outcome
+2. Spin",Win 0.00 (BN pay is 0 in math),,P1,High,Functional,Yes,QA / Staging (Game Client + RGS),Desktop Chrome (latest),Not Run,,Ref: M-08
+PS-FUN-054,Functional,Free Spins,Choice screen,Verify the player can choose Sticky Wilds Free Spins or Raining Wilds Free Spins after trigger,3+ BN trigger,3 BN,"1. Trigger FS
+2. Observe choice screen
+3. Select Sticky Wilds","Both options displayed with correct number of spins for the BN count (3 BN: Sticky 7, Raining 15); selection starts the chosen feature",,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-16, GR-17, GR-05, GR-09"
+PS-FUN-055,Functional,Free Spins,Choice screen no timeout,Verify the choice screen waits for player input and does not auto-select,Choice screen open,Wait 5 minutes,"1. Trigger FS
+2. Do not select for 5 minutes",Requires Specification/Confirmation: Rules do not define auto-selection/timeout. Expected: screen remains awaiting input; no auto selection unless specified,,P2,Medium,Functional,No,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-16
+PS-FUN-056,Functional,Free Spins,Same bet,Verify Free Spins are played at the same bet as the triggering spin and no bet is debited per Free Spin,Trigger at bet 2.00,Bet 2.00,"1. Trigger FS at 2.00
+2. Play all FS
+3. Check RGS records and balance",All FS evaluated at 2.00; no debit during FS; paytable/wins scaled to 2.00,,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-15
+PS-FUN-057,Functional,Buy Free Spins,Open interface,Verify selecting Buy Feature opens the Buy Feature interface showing cost and available settings,Buy Feature enabled for jurisdiction; base game idle,Bet 1.00 => cost 100.00,"1. Press Buy Feature
+2. Observe interface","Interface opens; cost shown as 100 x total bet = 100.00; available options displayed (FS type selection if offered, see OBS-10); Confirm and Cancel present",,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-32, GR-36, M-14 | OBS-10"
+PS-FUN-058,Functional,Buy Free Spins,Cost,Verify Buy cost is exactly 100x the total bet for every bet level,Buy interface,"Bets: min, 1.00, max","1. Open Buy at min bet
+2. Read cost
+3. Repeat at 1.00 and max",Cost = 100 x bet in every case (e.g. 0.20 => 20.00; 1.00 => 100.00),,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-36, M-14"
+PS-FUN-059,Functional,Buy Free Spins,Confirm,Verify confirming the purchase debits 100x bet once and starts the feature-triggering spin,Balance >= 100 x bet,Bet 1.00; balance 500.00,"1. Open Buy
+2. Confirm
+3. Observe spin and balance",Balance debited 100.00 once; triggering spin lands 3+ BN; FS starts; RGS shows one buy transaction,,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-33, GR-36"
+PS-FUN-060,Functional,Buy Free Spins,Cancel,Verify cancelling the Buy interface makes no debit and returns to base game,Buy interface open,Bet 1.00,"1. Open Buy
+2. Press Cancel/Close",No debit; base game idle; bet unchanged,,P1,High,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-32, GR-52"
+PS-FUN-061,Functional,Buy Free Spins,Triggering spin win,Verify the feature-triggering spin pays any symbol wins on that spin,Forced buy outcome containing a win,Triggering spin with AA 3oak (1 way) at bet 1.00 => 0.75,"1. Buy feature with forced outcome
+2. Observe triggering spin win",0.75 awarded from the triggering spin in addition to FS feature winnings,,P1,High,Functional,Yes,QA / Staging (Game Client + RGS),Desktop Chrome (latest),Not Run,,Ref: GR-34
+PS-FUN-062,Functional,Buy Free Spins,Bet revert,Verify after the bought feature ends the bet reverts to the value selected before purchase,Bet 1.00 before purchase; any bet setting inside Buy interface if supported,Pre-buy bet 1.00,"1. Set bet 1.00
+2. Open Buy and choose bet 2.00 if interface allows
+3. Complete feature
+4. Check bet field",Bet field returns to 1.00 after feature end,,P1,High,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-35
+PS-FUN-063,Functional,Buy Free Spins,Insufficient balance,Verify Buy Feature is disabled or rejected when balance is below 100x bet,Balance 99.99 at bet 1.00,Balance 99.99,"1. Open Buy
+2. Try to confirm",Confirm disabled or insufficient funds message; no debit; no FS,,P0,Critical,Negative,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-36
+PS-FUN-064,Functional,Buy Free Spins,Jurisdiction,Verify Buy Feature is hidden in jurisdictions where it is not permitted,Jurisdiction config with buy disabled (e.g. UKGC),Flag buyFeature=false,1. Launch game,Buy Feature button not displayed; no route to purchase,,P0,Critical,Compliance,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-32
+PS-FUN-065,Functional,Turbo Spin,Toggle,Verify the Turbo button toggles Turbo Spin on and off and the button state reflects the mode,Base game idle,N/A,"1. Press Turbo
+2. Spin
+3. Press Turbo again
+4. Spin",Turbo on: shorter reel spin and faster win animations; button shows enabled state. Turbo off: normal speed; button shows disabled state,,P1,Medium,Functional,Partial,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-37, GR-52"
+PS-FUN-066,Functional,Turbo Spin,Outcome integrity,"Verify Turbo Spin does not change results, wins or balance",Turbo on,20 spins,"1. Play 20 spins in Turbo
+2. Compare outcomes with RGS logs",Displayed results and wins match RGS; balance correct,,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-37
+PS-FUN-067,Functional,Quick Spin,Toggle,Verify Quick Spin can be enabled and speeds up gameplay where available,Jurisdiction allowing Quick Spin,N/A,"1. Enable Quick Spin in settings
+2. Spin 5 times
+3. Disable",Requires Specification/Confirmation: Rules list both Quick Spin and Turbo Spin; confirm whether they are the same control (OBS-18). Expected: faster spins when enabled,,P2,Medium,Functional,Partial,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-30 | OBS-18
+PS-FUN-068,Functional,Quick Spin,Jurisdiction,Verify Quick Spin/Turbo is unavailable where disallowed,Jurisdiction with minimum spin duration rule,Flag quickSpin=false,"1. Launch game
+2. Look for Quick Spin/Turbo",Controls hidden or disabled; spin duration meets jurisdiction minimum,,P1,High,Compliance,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-30
+PS-FUN-069,Functional,Auto Spin,Open desktop,Verify clicking and holding Play for 2 seconds opens the Auto Spin menu on desktop,Desktop,Hold 2.0s,"1. Click and hold Play for 2 seconds
+2. Release",Auto Spin menu opens; no spin started by the hold,,P1,High,Functional,Partial,QA / Staging (Game Client + RGS),Desktop Chrome (latest),Not Run,,"Ref: GR-38, GR-52"
+PS-FUN-070,Functional,Auto Spin,Short press,Verify a press shorter than 2 seconds starts a normal spin and does not open Auto Spin,Desktop and mobile,Hold ~0.5s,1. Press and release Play quickly,Single spin starts; Auto Spin menu does not open,,P1,Medium,Boundary,Partial,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-38
+PS-FUN-071,Functional,Auto Spin,Open mobile,Verify tap and hold Play for 2 seconds opens Auto Spin on mobile and Start begins the session,Mobile device,10 spins,"1. Tap and hold Play 2s
+2. Select 10
+3. Tap Start",Menu opens on hold; auto spins start only after Start is tapped,,P1,High,Functional,Partial,QA / Staging (Game Client + RGS),Mobile (iOS Safari / Android Chrome),Not Run,,Ref: GR-39
+PS-FUN-072,Functional,Auto Spin,Count completion,Verify Auto Spin plays exactly the selected number of spins and then stops,Balance sufficient,10 spins at bet 1.00,"1. Start 10 auto spins
+2. Count rounds","Exactly 10 rounds, 10 debits of 1.00; Auto Spin ends automatically",,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-43
+PS-FUN-073,Functional,Auto Spin,Panel counters,"Verify the Auto Spin panel shows total selected spins, remaining spins and total win for the session",Auto Spin running,10 spins,"1. Start 10 auto spins
+2. Observe panel after each spin",Total = 10; remaining decrements by 1 per completed round; total win equals sum of round wins,,P1,High,Functional,Partial,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-41
+PS-FUN-074,Functional,Auto Spin,Stop,Verify pressing Stop ends Auto Spin after the current round completes,Auto Spin with 50 spins running,N/A,"1. Start 50 auto spins
+2. Press Stop after spin 3",Current round completes normally; no further rounds start; remaining counter cleared,,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-43, GR-52"
+PS-FUN-075,Functional,Auto Spin,Cancel,Verify Cancel in Auto Spin menu closes the menu without starting spins,Auto Spin menu open,Select 25,"1. Select 25
+2. Press Cancel",Menu closes; no spin starts; no debit,,P1,Medium,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-42
+PS-FUN-076,Functional,Auto Spin,Spend limit,Verify Auto Spin stops when the selected spend limit is reached,Auto Spin menu supports spend limit,Bet 1.00; 100 spins; spend limit 5.00,"1. Set 100 spins with spend limit 5.00
+2. Start
+3. Force losing outcomes",Requires Specification/Confirmation: Definition of spend (gross stake vs net loss) not specified. Expected: Auto Spin stops before exceeding 5.00 spend; remaining spins cancelled,,P0,Critical,Functional,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-40 | OBS-21
+PS-FUN-077,Functional,Auto Spin,Feature trigger,Verify Auto Spin pauses at the Free Spins choice screen and requires player selection,Auto Spin running; forced FS trigger on spin 2,10 spins,"1. Start 10 auto spins
+2. Force trigger on spin 2
+3. Observe",Requires Specification/Confirmation: Rules do not state auto-play behaviour on feature trigger. Expected: auto play pauses for choice (player decision); after feature completes Auto Spin resumes or stops as specified,,P1,High,Functional,Partial,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-16, GR-43 | OBS-24"
+PS-FUN-078,Functional,Auto Spin,Insufficient balance,Verify Auto Spin stops when balance is insufficient for the next spin,Balance 2.50; bet 1.00,"10 spins, forced losses",1. Start 10 auto spins,2 rounds play; Auto Spin stops; insufficient funds message; balance 0.50; no negative balance,,P0,Critical,Negative,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-43
+PS-FUN-079,Functional,Auto Spin,Bet lock,Verify bet cannot be changed during Auto Spin,Auto Spin running,N/A,"1. Start Auto Spin
+2. Try to open bet panel",Bet controls disabled; all auto rounds at the original bet,,P1,High,Negative,Yes,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-20
+PS-FUN-080,Functional,Menu,Menu items,"Verify the Menu/Settings shows only available options among Lobby, Transaction History, Sound Settings, Game Rules, Splash Screen Settings, Game History, Deposit, Promotions",Operator configuration known,Operator config,"1. Open Menu
+2. Compare listed options with operator config",Options present per configuration; each opens the correct destination; unavailable ones hidden (not broken),,P1,Medium,Functional,Partial,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-46, GR-52"
+PS-FUN-081,Functional,Menu,Lobby,Verify the Lobby option returns the player to the operator lobby without losing an unfinished feature,Free Spins in progress,FS remaining 5,"1. Open Menu during FS (if allowed)
+2. Press Lobby
+3. Relaunch game",Player returned to lobby; on relaunch unfinished FS resumes with 5 spins remaining,,P1,High,Functional,Partial,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-46, GR-56"
+PS-FUN-082,Functional,History,Round details,"Verify Game History shows spin result, bet, win, date/time and any triggered feature for recent rounds",At least 5 rounds played incl. one FS trigger,N/A,"1. Open History
+2. Inspect last 5 rounds","Each round shows reel result, bet, win, timestamp (correct timezone); FS round shows feature type and per-spin results; values match RGS",,P1,High,Functional,Partial,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-47
+PS-FUN-083,Functional,History,Buy round,Verify a Buy Feature round is recorded in History with purchase cost and total feature win,One completed Buy round,Bet 1.00,"1. Open History
+2. Locate Buy round","Entry shows cost 100.00, feature type, total win; identifiable as purchased feature",,P1,High,Functional,Partial,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-47, GR-36"
+PS-FUN-084,Functional,Game Info,Open/close,Verify the Information button opens game rules and paytable and Close returns to the game,Base game idle,N/A,"1. Press Info
+2. Scroll all pages
+3. Press Close",Rules and paytable display fully; Close returns to the previous screen with state unchanged,,P1,Medium,Functional,Partial,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-48, GR-52"
+PS-FUN-085,Functional,Game Info,RTP disclosure,Verify the RTP values in game rules match the certified math,Game Info open,Math: base game RTP 96.99% (96.98864%); Buy FG1 97.08%; Buy FG2 97.11%,1. Read RTP statements,Displayed RTP equals certified value for the deployed configuration; separate Buy values shown or rule clarified (OBS-10); no {{text1}} placeholders,,P0,Critical,Compliance,No,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-54, GR-55, M-01, M-15, M-16 | OBS-09, OBS-10"
+PS-FUN-086,Functional,Game Info,Max win disclosure,Verify maximum win statement shows a concrete value consistent with configured cap,Game Info open,"Math max exposure base 50,454.55x bet; Buy FG2 83,745.6x bet",1. Read Bet and Max Win section,Requires Specification/Confirmation: Cap value is {{text1}} in rules. Expected: concrete cap value matching server configuration,,P0,Critical,Compliance,No,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-29, M-04 | OBS-09, OBS-12"
+PS-FUN-087,Functional,Sound,Toggle,Verify the sound icon enables and disables all game audio,Audio on,N/A,"1. Press sound icon
+2. Spin
+3. Press again
+4. Spin",Audio muted then restored; icon state reflects setting,,P2,Medium,Functional,Partial,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-49, GR-52"
+PS-FUN-088,Functional,Sound,Ambient vs effects,Verify ambient sound and sound effects can be toggled independently where available,Sound settings available,N/A,"1. Disable ambient only; spin
+2. Enable ambient, disable SFX; spin",Only the selected category is muted in each case,,P3,Low,Functional,No,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-49
+PS-FUN-089,Functional,Compliance,Malfunction statement,Verify 'Malfunction voids all pays and plays' is displayed in rules,Game Info open,N/A,"1. Open rules, Additional Information",Statement present and legible,,P2,Medium,Compliance,No,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,Ref: GR-53
+PS-FUN-090,Functional,Compliance,Pay table ID,Verify the Pay table ID shown in rules matches the deployed math/config identifier,Game Info open; deployed config ID known,Rules: 'Pig Style'; math file game name: 'DogHouseMegaways9700',"1. Read Pay table ID
+2. Compare with RGS math configuration ID","Requires Specification/Confirmation: Math summary carries game name 'DogHouseMegaways9700'. Expected: identifier consistent between rules, math file and deployed config",,P1,High,Compliance,No,QA / Staging (Game Client + RGS),Desktop + Mobile (all supported),Not Run,,"Ref: GR-59, M-20 | OBS-13"

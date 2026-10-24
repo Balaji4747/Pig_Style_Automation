@@ -77,3 +77,77 @@ balance delta checked) after both fixes. Balance was left at a very large value
 for a QA sandbox token, not touched/reset.
 **Review**: both fixes are localized to `GamePage.play_feature_spins_to_completion` /
 `resolve_pending_feature`; no Functional-sheet test files were edited.
+
+## D-007: New pytest markers for the new sheets
+Added `negative`, `boundary`, `integration` (the three "type" markers from the task's list
+not already registered — `functional`/`math`/`recovery`/`ui`/`compatibility` already
+existed), plus a `test_case(id)` marker so every test can declare the exact workbook
+Test Case ID(s) it covers in a machine-queryable way (`pytest -m "test_case"` doesn't
+filter by value, but `--collect-only -m ...` plus grep, or a small script, can map ID ->
+test function — used for the final ID/function/status table and for confirming no PS-REG
+row goes untagged). Error Handling (PS-ERR) tests use `negative`; STR/Transaction tests use
+`integration` (no dedicated "transaction" marker — the task's own marker list didn't
+include one, and `integration` reads correctly for cross-request transaction checks).
+**Review**: if you'd prefer a dedicated `transaction` marker instead of reusing
+`integration` for PS-STR, easy to rename.
+
+## D-008: PS-INT feasibility — what "Yes" actually means here
+All 30 PS-INT rows are marked Automation Candidate "Yes" in the workbook, but several
+describe conditions Playwright cannot literally produce (real iOS/Android app
+backgrounding, an incoming phone call, a locked device, an actual wallet-service outage,
+a real 24-hour or 10-minute elapsed-time gap, a genuine browser process crash). Rather than
+skip these or silently fake full compliance, each gets the closest *real* automated
+equivalent, named explicitly in its docstring, and is scored against what it actually
+proves:
+- **Network loss / server errors / timeouts / session expiry** (PS-INT-008/009/010/011/
+  017/018/019/020/021): `page.context.set_offline(True)` for true connectivity loss, and
+  `page.route()` response mocking (abort, delay, or a substituted status/body) for
+  server-side failure modes we have no real fault-injection access to. This is standard
+  practice for testing a client's failure handling and is treated as full "Yes" automation
+  of the *client-side reaction*, not a claim that it reproduces the real RGS/wallet failing.
+- **Refresh / close-reopen / browser crash / reload-based cases** (001-007, 022-026,
+  028-030): `page.reload()` or closing and reopening a page/context against the same
+  session token — genuinely exercises the real recovery path (`unfinishedInfo`,
+  `resolve_pending_feature`), scored "Yes".
+- **Device rotation** (016): `page.set_viewport_size()` mid-presentation — this is a real,
+  supported Playwright capability and a faithful equivalent, scored "Yes".
+- **App background (iOS/Android), device lock, incoming call** (012-015): approximated via
+  dispatching a `visibilitychange`/`document.hidden` event, which is the standard web-layer
+  signal a page receives in all of these real scenarios. This tests the game's reaction to
+  *that signal*, not the native OS behavior around it (and can't touch audio restoration at
+  all) — scored "Partial", with the gap stated in each docstring.
+- **Long elapsed-time gaps** (10 min outage in 011, 24h unfinished-round in 022):
+  shortened to a practical duration (tens of seconds) that still exercises the same
+  reload/reconnect code path, since neither this harness nor the live session can fast-
+  forward server-side clocks or wait in real-time for hours. Scored "Partial", gap stated.
+- **Max win cap** (026): depends on hitting the live max-win cap deterministically. The
+  cheat tool's win-tier options ("BIG WIN"/"MEGA WIN"/"GIGA WIN"/"UNBEL WIN") share mostly
+  identical forced boards and may not reach the cap at every bet level — tried at max bet
+  first; if `maxCapReached` never comes back true, this is marked Blocked ("needs cheat for
+  guaranteed max-win-cap trigger") rather than faked.
+**Review**: if a stricter reading of "Yes" is wanted (i.e., only count a case as automated
+when it reproduces the literal real-world trigger), most of 008-021 and all of 012-015
+should be downgraded to Partial/Blocked instead — flagging this explicitly since it's a
+judgment call with a real difference in what the resulting test actually proves.
+
+## D-009: Functional-suite recheck's cascading failures were self-inflicted (two concurrent runs on one shared account)
+While trying to launch the Functional-suite recheck in the background, my first attempt
+used `run_in_background: true` on a Bash call that ALSO backgrounded the pytest command
+itself internally with a trailing `&`. The outer wrapper exited immediately (having done
+nothing but launch pytest and echo its PID) and reported "completed", which I mistakenly
+read as the pytest run finishing. In fact the detached pytest process kept running,
+untracked, in the background. I then launched a second, properly-tracked recheck run on
+top of it — meaning **two pytest processes were hitting the one shared QA player session
+concurrently** for a stretch of this run, which is exactly the "never run anything but
+serially against the one account" rule this whole task is built on. That fully explains
+the cascading `test_auto_spin`/`test_balance` failures (including
+`test_balance_debited_by_exactly_the_bet_amount`, which had passed cleanly in every prior
+run) — concurrent spins and reads against one account race on balance and round state.
+Found via `ps aux` showing a second, older `python` process still alive after the tracked
+task was stopped; killed it (`kill -9`), confirmed no python/chromium processes remain.
+**This is a test-infrastructure bug on my end, not a product defect** — none of the
+Functional-suite failures from this recheck should be trusted or reported as bugs. Redoing
+the recheck now as a single, properly-tracked run before drawing any conclusion about
+whether D-005/D-006 broke anything.
+**Review**: no code changes needed; this is a process-hygiene note for future background
+launches — never combine `run_in_background: true` with an internal `&`/detached child.

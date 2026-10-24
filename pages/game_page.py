@@ -196,6 +196,17 @@ class GamePage(BasePage):
             self.resolve_pending_feature()
         return result
 
+    def spin_and_wait_feature_trigger_only(self) -> SpinResult:
+        """Like spin_and_wait(), but does NOT auto-resolve a triggered
+        feature — for interruption/recovery tests that need to inspect or
+        interrupt the game while still mid-feature, rather than ending on a
+        clean base-game state. Asserts the spin actually triggered a
+        feature, since callers rely on that."""
+        exchange = self.spin()
+        result = parse_spin_response(exchange.response_body)
+        assert result.is_feature_triggered, "expected this forced spin to trigger a feature"
+        return result
+
     def is_feature_choice_visible(self) -> bool:
         return self.get_pixi_node_or_none(self.FEATURE_CHOICE_TITLE_NODE) is not None
 
@@ -328,6 +339,41 @@ class GamePage(BasePage):
         panel = CheatPanel(self.page)
         panel.open()
         return panel
+
+    def set_offline(self, offline: bool) -> None:
+        """Simulates a real connectivity loss (not a mocked response) for
+        interruption/recovery testing — Playwright drops all network traffic
+        for this page's browser context at the transport level."""
+        self.page.context.set_offline(offline)
+
+    def dispatch_visibility_change(self, hidden: bool) -> None:
+        """Dispatches the same `visibilitychange`/`document.hidden` signal a
+        real browser sends when a mobile OS backgrounds the app, locks the
+        device, or the user switches tasks for an incoming call. This is the
+        standard web-layer signal for all of those scenarios, but it is not
+        a full substitute for them: it can't reproduce OS-level process
+        suspension or restore device audio, so tests using this note the gap
+        explicitly rather than claiming full native-device coverage."""
+        self.page.evaluate(
+            """(hidden) => {
+                Object.defineProperty(document, 'hidden', { value: hidden, configurable: true });
+                Object.defineProperty(document, 'visibilityState', {
+                    value: hidden ? 'hidden' : 'visible', configurable: true,
+                });
+                document.dispatchEvent(new Event('visibilitychange'));
+            }""",
+            hidden,
+        )
+
+    def reload_and_wait_ready(self, timeout_ms: int = 30_000) -> None:
+        """Reloads the page and waits for a fresh init response plus a fully
+        interactable base game, including auto-recovery of any pending round
+        the reload interrupted (via ensure_base_game_ready's unfinishedInfo
+        check) — the real recovery path exercised by every refresh/reload
+        test case."""
+        self.network_spy.wait_for_response("init", lambda: self.page.reload(), timeout_ms=timeout_ms)
+        self.wait_for(self.is_loaded, timeout_ms=timeout_ms)
+        self.ensure_base_game_ready(timeout_ms=timeout_ms)
 
     def force_next_spin(self, outcome: str) -> None:
         """Forces a specific outcome (e.g. "3 OAK BN", "6 OAK AA", "BIG WIN")

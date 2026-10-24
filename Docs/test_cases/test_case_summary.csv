@@ -1,0 +1,37 @@
+Pig Style (Megaways) - QA Test Suite,,,,,,,,
+Client,FEG (Fortuna Entertainment Group),,,,,,,
+Game,"Pig Style - 6-reel Megaways, up to 117,649 ways",,,,,,,
+Source: Game Rules,Pig_Style_GR_Eng_2.docx,,,,,,,
+Source: Math File,pig_style_R7_1.xlsx (R7.1),,,,,,,
+Prepared by,Pixentech QA,,,,,,,
+Prepared on,23 Oct 2026,,,,,,,
+Test case ID format,PS-<AREA>-NNN,,,,,,,
+Bet convention,Math pays are credits at total bet 20. Win = Bet x Pay / 20 x Ways x product of wild multipliers,,,,,,,
+Sheet,Total TCs,P0,P1,P2,P3,Automation: Yes,Automation: Partial,Requires Spec/Confirmation
+Functional Testing,90,49,28,11,2,66,17,10
+Math Validation,63,45,10,8,0,57,0,12
+Feature Testing,59,40,18,1,0,50,6,10
+Edge & Boundary Cases,42,16,17,7,2,40,0,4
+Regression Suite,162,15,119,28,0,152,5,18
+UI-UX Testing,47,1,19,18,9,1,41,1
+Compatibility Testing,21,3,9,7,2,0,13,0
+Interruption & Recovery,30,24,6,0,0,30,0,2
+STR - Transaction Testing,27,23,4,0,0,22,4,1
+Error Handling,20,8,11,1,0,20,0,0
+Total (incl. Regression),561,224,241,81,15,438,86,58
+Total unique (excl. Regression),399,209,122,53,15,286,81,40
+Legend,,,,,,,,
+P0,"Release blocker: money, math, compliance, state integrity",,,,,,,
+P1,Major functionality; must pass before client release,,,,,,,
+P2,Important but has workaround / cosmetic with impact,,,,,,,
+P3,Minor / cosmetic,,,,,,,
+Yellow cells,"Columns to fill during execution: Actual Result, Status, Defect ID",,,,,,,
+Orange Expected Result,Case depends on a spec item marked 'Requires Specification/Confirmation' (see Defect-Observation Log),,,,,,,
+Status values,"Not Run, Pass, Fail, Blocked, N/A, Spec Confirmation",,,,,,,
+Regression Suite priority,"Execution order: P0 = Smoke (every build), P1 = Core (money, math, features, state), P2 = Extended. Source priority kept in Remarks",,,,,,,
+Math Reference sheet,"Paytable and weights extracted from the math file, with x-bet values as formulas",,,,,,,
+Example of a completed row (for format reference only),,,,,,,,
+Test Case ID,PS-FUN-021,,,,,,,
+Actual Result,Win field 0.75; balance 99.75 from 100.00 at bet 1.00,,,,,,,
+Status,Pass,,,,,,,
+Defect ID,"(blank when passed, e.g. PS-DEF-012 when failed)",,,,,,,
