@@ -23,16 +23,26 @@ rewritten here.
   regressions — **IN PROGRESS / see note below**.
 
 ## CHECKPOINT: live validation paused — see DECISIONS.md D-012
-The live `tests/interruption/` run (30 cases) got as far as 5/30 (3 pass, 1 fail under
-investigation, 1 still resolving a leftover stuck round from an interrupted prior attempt)
+The live `tests/interruption/` run (30 cases) got as far as 5/30 (3 pass, 1 fail — fixed a
+cleanup gap in that test afterward, see D-012 — 1 that needed a long stuck-round recovery)
 before demonstrating that a single adversarial feature-recovery can legitimately take tens
-of minutes under D-011's fix. Rather than keep burning session time with no confident
-upper bound, live validation of PS-INT/PS-ERR/PS-STR/PS-MTH/PS-CMP is paused — all test
-code is written and committed, but marked PENDING (not confirmed passing) in
-`reports/EXECUTION_SUMMARY.md`. A diagnostic test is currently running in the background to
-let the one in-flight stuck-round recovery finish naturally and leave the shared session
-clean — do not start any other live-game work until that completes (check for a live
-python/chromium process before running anything else against the game).
+of minutes under D-011's fix. A follow-up isolated diagnostic confirmed the fixture-level
+recovery DOES eventually succeed (not a true infinite hang), but then hit a SECOND,
+unexplained multi-minute delay immediately afterward with no diagnostic output to pin down
+why — possibly a smaller recurrence of the same class of issue, possibly general session/
+environment slowness after a very long day of continuous heavy automated use. Stopped
+investigating further (diminishing returns) and deleted the diagnostic. **The shared
+session's current state is not confirmed clean** — budget extra time for a possibly slow
+first load whenever this is picked up again.
+All test code for PS-INT/PS-ERR/PS-STR/PS-MTH/PS-CMP is written, committed, and compiles/
+collects cleanly, but marked PENDING (not confirmed passing live) in
+`reports/EXECUTION_SUMMARY.md`. Also fixed, while auditing for the same mistake PS-INT-016
+had (comparing a stale `get_init_data().player_info.balance` — which only updates on
+reload/goto — against a balance that had actually changed via an intervening spin): two
+real instances of the same bug in PS-STR-007 and PS-STR-010 (both now use `get_balance()`,
+which correctly prefers the latest spin's balance). Audited every other occurrence in the
+new test files; all others were confirmed correct (read fresh-at-test-start or
+immediately after a reload).
 
 ## Functional-suite recheck: not re-run a third time (by design)
 Two issues ate a large amount of this run's live-session time before any new-sheet work

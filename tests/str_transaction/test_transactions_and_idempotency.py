@@ -125,7 +125,7 @@ def test_concurrent_duplicate_spin_requests_do_not_double_process(game_ready, ra
         game_ready.spin_and_wait()
         spin_url = game_ready.network_spy.last("spin").url
 
-    balance_before = game_ready.get_init_data().player_info.balance
+    balance_before = game_ready.get_balance()
     results = game_ready.page.evaluate(
         """async (url) => {
             const fire = () => fetch(url, { method: 'POST', credentials: 'include' })
@@ -183,7 +183,7 @@ def test_out_of_order_concurrent_requests_do_not_corrupt_state(game_ready, raw_f
     without guessing an undocumented payload. Ref: GR-56."""
     game_ready.spin_and_wait()
     spin_url = game_ready.network_spy.last("spin").url
-    balance_before = game_ready.get_init_data().player_info.balance
+    balance_before = game_ready.get_balance()
 
     game_ready.page.evaluate(
         """async (url) => {

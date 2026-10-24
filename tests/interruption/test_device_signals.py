@@ -87,6 +87,16 @@ def test_device_lock_signal_during_auto_spin_loses_no_rounds(game_ready):
         pass
     game_ready.page.wait_for_timeout(3_000)
 
+    # Auto Spin uses real (unforced) outcomes, so it can incidentally trigger
+    # a Bonus feature mid-sequence — confirmed live (D-012/D-010): the game
+    # pauses Auto Spin, plays the won feature to completion on its own, and
+    # shows a "Congratulations" summary before (presumably) resuming. Clear
+    # that before the final assertions so this test doesn't leave the shared
+    # session stuck for whatever runs next.
+    game_ready.dismiss_congrats_popup_if_present()
+    if game_ready.get_init_data().unfinished_info is not None:
+        game_ready.resolve_pending_feature(timeout_ms=120_000)
+
     round_ids = [parse_spin_response(e.response_body).round_id for e in game_ready.network_spy.all("spin")]
     assert len(round_ids) == len(set(round_ids)), "duplicate round ID across the hidden/visible transition"
     assert len(round_ids) >= count_while_hidden

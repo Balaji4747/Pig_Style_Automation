@@ -255,3 +255,19 @@ budget set aside (plan for over an hour, not minutes); (3) the real structural f
 D-011's own suggestion: poll the `/feature` response's own per-spin completion signal
 instead of any client-side settle-delay budget, which would remove the worst-case entirely
 rather than just bounding it.
+
+**Follow-up**: let the diagnostic (`test_zzz_diag2.py`, timing prints around each step of
+`force_next_spin`) run further to confirm full recovery. It DID progress past the original
+hang (fixture setup completed, test body started and printed its first three timing lines
+within ~4 seconds, confirming the fixture-level stuck-round recovery eventually succeeded),
+but then stalled again for several more minutes inside the NEXT `ensure_base_game_ready()`
+call (immediately after `force_next_spin("3 OAK AA")`'s own reload) with no diagnostic
+output to explain why — this could be a second, smaller recurrence of the same issue, or
+genuine session/environment slowness after a very long, heavy day of continuous automated
+testing against one account (consistent with this project's earlier-documented "heavy
+single shared session degrades over a long run" pattern, predating this task). Stopped
+investigating further and deleted the diagnostic rather than keep spending session time on
+it — this is now a known, open reliability question for whoever resumes, not a resolved
+one. **The shared session's current state is NOT confirmed clean** — the next person/run
+to use it should expect a possible slow or stuck initial load and budget time accordingly,
+rather than assume a fast start.
