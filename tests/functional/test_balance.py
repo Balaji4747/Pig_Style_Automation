@@ -6,6 +6,7 @@ import pytest
 @pytest.mark.functional
 @pytest.mark.regression
 @pytest.mark.sanity
+@pytest.mark.test_case("PS-REG-008")
 def test_balance_debited_by_exactly_the_bet_amount(game_ready):
     """PS-FUN-020: the balance changes by exactly (win - bet) for a single
     paid spin, i.e. the bet is debited exactly once regardless of outcome."""
@@ -18,6 +19,7 @@ def test_balance_debited_by_exactly_the_bet_amount(game_ready):
 @pytest.mark.functional
 @pytest.mark.regression
 @pytest.mark.sanity
+@pytest.mark.test_case("PS-REG-009")
 def test_base_game_win_credited_to_balance(game_ready):
     """PS-FUN-021: a base game win is credited to the balance. Forces "3 OAK
     AA" (AA on reels 1-3, 1 way) at the default bet (1.00) — math pay:
@@ -32,6 +34,7 @@ def test_base_game_win_credited_to_balance(game_ready):
 
 @pytest.mark.functional
 @pytest.mark.regression
+@pytest.mark.test_case("PS-REG-010")
 def test_displayed_balance_matches_api_balance_after_each_round(game_ready):
     """PS-FUN-022: the canvas-displayed balance matches the authoritative
     API balance after every round. Reduced from the workbook's 10 rounds to

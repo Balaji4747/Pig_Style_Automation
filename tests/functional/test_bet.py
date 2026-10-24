@@ -48,6 +48,7 @@ def test_bet_selection_updates_bet_field_for_every_configured_level(game_ready, 
 
 @pytest.mark.functional
 @pytest.mark.regression
+@pytest.mark.test_case("PS-REG-005")
 def test_bet_stays_within_min_max_range(game_ready, init_data):
     """PS-FUN-016 (adapted): selecting the lowest/highest configured bet
     level works and the bet never leaves the configured min/max range —
@@ -95,6 +96,7 @@ def test_bet_retained_after_closing_panel_and_across_spins(game_ready, init_data
 
 @pytest.mark.functional
 @pytest.mark.regression
+@pytest.mark.test_case("PS-REG-006")
 def test_bet_panel_does_not_open_while_a_spin_is_in_flight(game_ready):
     """PS-FUN-018: bet controls are disabled/ignored while reels are
     spinning and during win presentation."""
@@ -115,6 +117,7 @@ def test_bet_panel_does_not_open_while_a_spin_is_in_flight(game_ready):
 
 @pytest.mark.functional
 @pytest.mark.regression
+@pytest.mark.test_case("PS-REG-007")
 def test_bet_panel_does_not_open_during_free_spins(game_ready):
     """PS-FUN-019: bet controls are disabled for the whole Free Spins
     feature."""

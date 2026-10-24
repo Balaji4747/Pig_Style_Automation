@@ -6,6 +6,7 @@ from utils.megaways_calculator import ways_count
 @pytest.mark.functional
 @pytest.mark.regression
 @pytest.mark.sanity
+@pytest.mark.test_case("PS-REG-002")
 def test_reel_count_and_heights_stay_within_bounds(game_ready):
     """PS-FUN-005: 6 reels, each showing 2-7 symbols per spin. Reduced from
     the workbook's 50 spins to 10 for suite run time; still exercises the
@@ -20,6 +21,7 @@ def test_reel_count_and_heights_stay_within_bounds(game_ready):
 @pytest.mark.functional
 @pytest.mark.regression
 @pytest.mark.sanity
+@pytest.mark.test_case("PS-REG-003")
 def test_ways_counter_equals_product_of_reel_heights(game_ready):
     """PS-FUN-006: the displayed MEGAWAYS counter equals the product of the
     symbol counts on all 6 reels for the spin that produced it."""

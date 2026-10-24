@@ -6,6 +6,7 @@ import pytest
 @pytest.mark.functional
 @pytest.mark.regression
 @pytest.mark.sanity
+@pytest.mark.test_case("PS-REG-001")
 def test_game_launches_to_base_game_with_correct_initial_state(game_ready, init_data):
     """PS-FUN-001: game launches, lands on the base game, and the initial
     state (reels, bet, balance, win) is correct."""
