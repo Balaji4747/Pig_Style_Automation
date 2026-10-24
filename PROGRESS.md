@@ -22,6 +22,20 @@ rewritten here.
 - Re-ran the full Functional suite (no reruns) after the page-object fix to check for
   regressions — **IN PROGRESS / see note below**.
 
+## Functional-suite recheck: not re-run a third time (by design)
+Two issues ate a large amount of this run's live-session time before any new-sheet work
+could proceed: D-005/006 (stuck Free Spins session) and D-009/010/011 (a second,
+independent stuck-session incident, root-caused and fixed more robustly, plus ruling out
+an alternative hypothesis via an isolated diagnostic). Both are now confirmed fixed
+(diagnostic test passed end-to-end; the `open_auto_spin_menu()` gesture was proven
+innocent). Rather than burn more shared-session time re-running the full 32-test
+Functional suite a third time (which would mostly re-confirm what the diagnostics already
+showed), I'm moving on to the actual priority-1 deliverable (PS-INT) now. The one
+Functional-sheet finding that stands either way — `test_auto_spin.py`'s two count-based
+tests have a pre-existing, unrelated test-logic gap (D-010) — is documented and left
+untouched per this task's scope rules. Recommend a full Functional-suite rerun as a
+follow-up once the new-sheet work is further along, time permitting.
+
 ## Sheet: Interruption & Recovery (PS-INT) — 30 rows, all P0/P1, all "Yes"
 Status: **IN PROGRESS**. Full row list read (`docs/test_cases/ps_int.csv`). Feasibility
 assessment done (see DECISIONS D-008 once logged) — most rows are genuinely automatable
