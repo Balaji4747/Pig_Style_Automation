@@ -114,6 +114,25 @@ passed).
   recovery step (pick Sticky Wilds if offered, dismiss any congrats popup,
   drain remaining feature spins, dismiss again) and tolerates steps that
   don't apply.
+- **The win-presentation settle delay applies inside a Free Spins round
+  too, not just between base-game spins** (fixed 25 Oct 2026, after a
+  session got stuck for hours at "13 OUT OF 15 FREE SPINS" with a runaway
+  balance). `play_feature_spins_to_completion()` used to press Space with
+  no settle wait; a winning feature spin's next Space press was silently
+  ignored mid-celebration, the `/feature` response never arrived, and the
+  loop's own timeout made it look like "round complete" with spins still
+  outstanding — and this repeated on every later recovery attempt, so the
+  round could never actually drain. Fixed by adding the same
+  `wait_for_loading_overlay_to_clear()` + 3s settle wait `spin()` uses,
+  before each Space press in the loop.
+- **The *final* free spin's win rollup can take noticeably longer to
+  settle than a mid-round one** (stacked wild multipliers etc.) —
+  `is_base_game_ready()` (`megawaysText`) reports ready while that last
+  animation is still visually playing, so declaring the feature "resolved"
+  as soon as the spin-completion loop ends is premature.
+  `resolve_pending_feature()` now actively waits (10s) for the
+  "Congratulations" popup to appear before dismissing it, falling back to
+  one blanket 5s wait if a given feature variant shows no such popup.
 
 ### Network — source of truth for money/round data
 Balance/bet/win/reels/ways come from the intercepted API responses

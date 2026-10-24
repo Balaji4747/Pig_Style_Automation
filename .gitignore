@@ -3,6 +3,12 @@ __pycache__/
 *.pyc
 .pytest_cache/
 reports/
+!reports/EXECUTION_SUMMARY.md
+!reports/Pig_Style_QA_Test_Suite_EXECUTED.xlsx
+!reports/defects/
+reports/defects/**/*.png
+reports/defects/**/*.webm
+reports/defects/**/*.zip
 .venv/
 venv/
 *.egg-info/

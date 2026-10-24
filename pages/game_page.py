@@ -206,8 +206,19 @@ class GamePage(BasePage):
 
     def play_feature_spins_to_completion(self, max_spins: int = 30, response_timeout_ms: int = 8_000) -> None:
         """Plays out an active Free Spins round by pressing Space repeatedly
-        until no further /feature responses arrive (round complete)."""
+        until no further /feature responses arrive (round complete).
+
+        Each iteration waits out the same win-presentation settle delay used
+        by spin() before pressing Space again. Without it, a feature spin
+        that wins is followed by a Space press the game silently ignores
+        (still playing the celebration), the wait_for_response() below times
+        out, and the loop treats that as "round complete" while spins
+        actually remain — confirmed live: a round stuck at "13 OUT OF 15
+        FREE SPINS" across repeated resolve attempts, because every attempt
+        hit this same premature exit."""
         for _ in range(max_spins):
+            self.wait_for_loading_overlay_to_clear()
+            self.page.wait_for_timeout(3_000)
             try:
                 self.network_spy.wait_for_response("feature", self.press_space_bar, timeout_ms=response_timeout_ms)
             except PlaywrightTimeoutError:
@@ -242,6 +253,21 @@ class GamePage(BasePage):
 
         self.dismiss_congrats_popup_if_present()
         self.play_feature_spins_to_completion()
+
+        # The final free spin's win rollup (and the "Congratulations" summary
+        # that follows it) can take noticeably longer to settle than a
+        # mid-round spin's, especially with stacked wild multipliers —
+        # confirmed live: is_base_game_ready() (megawaysText) reports ready
+        # while the final spin's reel-stop/rollup animation is still
+        # visually playing, same stale-signal issue documented elsewhere in
+        # this game. Wait for the congrats popup to actually appear (a real
+        # "the round has finished settling" signal) before dismissing it;
+        # if this feature variant doesn't show one, fall back to one more
+        # blanket settle wait.
+        try:
+            self.wait_for(lambda: self.get_pixi_node_or_none(self.CONGRATS_TEXT_NODE) is not None, timeout_ms=10_000)
+        except (RuntimeError, TimeoutError):
+            self.page.wait_for_timeout(5_000)
         self.dismiss_congrats_popup_if_present()
 
         self.wait_for(self.is_base_game_ready, timeout_ms=timeout_ms)
