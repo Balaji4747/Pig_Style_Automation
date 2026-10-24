@@ -131,8 +131,22 @@ class GamePage(BasePage):
             self.dismiss_splash(timeout_ms=timeout_ms)
         self.wait_for(self.is_base_game_ready, timeout_ms=timeout_ms)
         self.wait_for_loading_overlay_to_clear(timeout_ms=timeout_ms)
-        if self.get_init_data().unfinished_info is not None:
+
+        # resolve_pending_feature() is itself best-effort (timing-based), so
+        # a single pass is not guaranteed to fully drain a round with an
+        # unusually long celebration — confirmed live: a round could still
+        # be stuck mid-sequence after one resolve attempt. Re-check against
+        # a FRESH init response (via reload, not the possibly-stale
+        # in-memory one) and retry a bounded number of times rather than
+        # trusting one attempt.
+        for _ in range(3):
+            if self.get_init_data().unfinished_info is None:
+                return
             self.resolve_pending_feature(timeout_ms=timeout_ms)
+            self.network_spy.wait_for_response("init", lambda: self.page.reload(), timeout_ms=timeout_ms)
+            self.wait_for(self.is_loaded, timeout_ms=timeout_ms)
+            self.wait_for(self.is_base_game_ready, timeout_ms=timeout_ms)
+            self.wait_for_loading_overlay_to_clear(timeout_ms=timeout_ms)
 
     def is_loaded(self) -> bool:
         """Whether the game's PIXI app has initialized (post goto(), which
@@ -215,7 +229,7 @@ class GamePage(BasePage):
         label = "STICKY WILDS" if which == "sticky" else "RAINING WILDS"
         self.click_pixi_text(label)
 
-    def play_feature_spins_to_completion(self, max_spins: int = 30, response_timeout_ms: int = 8_000) -> None:
+    def play_feature_spins_to_completion(self, max_spins: int = 30, response_timeout_ms: int = 15_000) -> None:
         """Plays out an active Free Spins round by pressing Space repeatedly
         until no further /feature responses arrive (round complete).
 
@@ -226,10 +240,30 @@ class GamePage(BasePage):
         out, and the loop treats that as "round complete" while spins
         actually remain — confirmed live: a round stuck at "13 OUT OF 15
         FREE SPINS" across repeated resolve attempts, because every attempt
-        hit this same premature exit."""
+        hit this same premature exit.
+
+        Settle wait and response timeout were both widened (5s / 15s) after
+        confirming live that a single big multi-wild-win celebration can
+        still exceed the original 3s/8s budget (observed stuck at "11 OUT OF
+        15" with 3 stacked WILD multipliers, across a *second* independent
+        session-corruption incident on 25 Oct 2026). Each miss also gets one
+        retry press before the loop gives up, since a too-early Space press
+        during a still-settling celebration is silently dropped by the game
+        rather than queued — a single retry recovers from exactly that race
+        without having to prove a universal timing bound."""
         for _ in range(max_spins):
             self.wait_for_loading_overlay_to_clear()
-            self.page.wait_for_timeout(3_000)
+            self.page.wait_for_timeout(5_000)
+            try:
+                self.network_spy.wait_for_response("feature", self.press_space_bar, timeout_ms=response_timeout_ms)
+                continue
+            except PlaywrightTimeoutError:
+                pass
+
+            # One retry: the previous press may have been silently dropped
+            # mid-celebration rather than the round actually being over.
+            self.wait_for_loading_overlay_to_clear()
+            self.page.wait_for_timeout(5_000)
             try:
                 self.network_spy.wait_for_response("feature", self.press_space_bar, timeout_ms=response_timeout_ms)
             except PlaywrightTimeoutError:

@@ -133,6 +133,23 @@ passed).
   `resolve_pending_feature()` now actively waits (10s) for the
   "Congratulations" popup to appear before dismissing it, falling back to
   one blanket 5s wait if a given feature variant shows no such popup.
+- **No fixed settle-delay budget is fully safe — verify against a fresh
+  server read and retry, don't just widen the number** (confirmed 25 Oct
+  2026, a second independent incident after the one above: a session got
+  stuck again at "11 OUT OF 15 FREE SPINS" with a large multi-wild win,
+  this time *inside a fresh test's own fixture setup*, with the then-current
+  3s/8s budget). `play_feature_spins_to_completion()`'s settle wait and
+  per-spin response timeout were widened (5s / 15s) and each miss now gets
+  one retry press (a too-early press mid-celebration is silently dropped by
+  the game, not queued, so a retry recovers from exactly that race) — but
+  the real fix is in `ensure_base_game_ready()`: it no longer trusts a
+  single `resolve_pending_feature()` pass, it re-checks `unfinishedInfo`
+  against a **fresh** init response (via an actual reload) and retries up
+  to 3 full resolve-then-reload-then-recheck rounds. If a third such
+  incident ever surfaces, stop relying on client-side timing entirely and
+  poll the `/feature` response's own per-spin completion field instead
+  (raw shape has `featureResults[].spinResults[]`, each presumably with its
+  own closed/done signal — not yet modelled, see Open items).
 
 ### Network — source of truth for money/round data
 Balance/bet/win/reels/ways come from the intercepted API responses

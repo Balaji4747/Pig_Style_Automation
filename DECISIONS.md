@@ -151,3 +151,65 @@ the recheck now as a single, properly-tracked run before drawing any conclusion 
 whether D-005/D-006 broke anything.
 **Review**: no code changes needed; this is a process-hygiene note for future background
 launches — never combine `run_in_background: true` with an internal `&`/detached child.
+
+## D-010: Root-caused the pre-existing `test_auto_spin_plays_exact_count_then_stops` flakiness — TEST ISSUE, not a product defect, Functional sheet left untouched
+The clean, single-process rerun (D-009) still failed this same test. Its failure
+screenshot shows the auto-spin session mid an incidental Free Spins trigger ("3 OUT OF 15
+FREE SPINS"). Root cause: `test_auto_spin_plays_exact_count_then_stops` counts completed
+rounds via `len(network_spy.all("spin"))` reaching 5, but Auto Spin uses real (not forced)
+outcomes — whenever one of those spins happens to trigger a Bonus feature, the game
+switches to the `/feature` endpoint for the rest of that round, so the `/spin` count can
+never reach 5 and the test times out. This is a **pre-existing gap in that test's own
+counting logic**, not something D-005/D-006 introduced (unrelated code path) and not a
+product defect (the game correctly pausing auto-spin's plain-spin counter to play out an
+earned feature is plausible intended behavior, not broken behavior).
+Per this task's own rule ("Functional sheet is already automated — only fix it if your
+changes break it"), I have **not** modified `tests/functional/test_auto_spin.py`: this
+failure predates this run's changes. Documented here instead so it isn't mistaken for a
+new regression or a real product bug in the final report.
+**Review**: worth fixing in a future pass — e.g. count `len(network_spy.all("spin")) +
+completed_feature_rounds` instead of just "spin", or force a non-feature-triggering
+cheat outcome for each of the 5 auto-spins. Flagging rather than fixing since it's outside
+this run's authorized scope for that file.
+
+## D-011: D-005/D-006's fix was insufficient — a second, independent session-corruption incident, now fixed more robustly
+A clean rerun of the Functional suite (D-009) still cascaded into failures across ALL
+`test_auto_spin.py` tests plus downstream `test_balance.py` tests. A direct diagnostic
+(temporary test, deleted after use) found the session genuinely stuck again, this time at
+"11 OUT OF 15 FREE SPINS" with a large multi-wild win (3 stacked WILD symbols, "WINNINGS:
+€14.40") — and, crucially, this happened **inside a brand-new test's own fixture setup**
+(`ensure_base_game_ready()`), meaning the widened-but-still-fixed-budget fix from
+D-005/D-006 (3s settle + 8s response wait per feature spin) was *still* occasionally too
+short for an unusually long celebration, and `resolve_pending_feature()` had no way to
+tell "I gave up early" apart from "the round is actually over" — both look identical
+(a response-wait timeout).
+Two changes, not just a bigger number:
+1. `play_feature_spins_to_completion()`: widened settle wait 3s->5s and per-spin response
+   timeout 8s->15s, AND added one retry press before concluding the round is over (a
+   too-early press mid-celebration is silently dropped by the game, not queued, so a
+   single retry recovers from exactly that race).
+2. `ensure_base_game_ready()`: no longer trusts a single `resolve_pending_feature()` pass.
+   It now re-checks against a **fresh** init response (via an actual reload, not the
+   possibly-stale in-memory one) and retries up to 3 total rounds of
+   resolve-then-reload-then-recheck before giving up. This makes recovery verified rather
+   than assumed.
+Root cause framing: this was never really about finding "the right fixed delay" — any
+fixed timing budget can be beaten by a big-enough win celebration. The real fix is #2
+(verify against a fresh server read and retry), with #1 just reducing how often a retry is
+even needed.
+**Confirmed fixed**: the diagnostic test's own fixture setup, rerun after this fix, loaded
+to a fully clean base game with no manual intervention (see follow-up diagnostic run).
+**Review**: if a THIRD such incident ever surfaces, the next step would be to stop
+relying on any client-side settle delay at all and poll a genuine per-spin "done" signal
+from the `/feature` response itself (e.g. a `closed`/`isAborted` field per spin, visible in
+the raw `featureResults[].spinResults[]` shape captured during this diagnostic) instead of
+"Space press -> did a response arrive in time."
+
+A one-off diagnostic test (`tests/interruption/test_zzz_diagnostic_autospin_gesture.py`,
+deleted after use) also directly disproved an alternative hypothesis for D-010: that
+`GamePage.open_auto_spin_menu()`'s mouse-down+hold+up gesture itself fires a real spin
+request (which would have made it a page-object bug, not a test-counting-logic gap). It
+does not — 0 spin/feature requests fired during the gesture, isolated and confirmed live.
+D-010's original classification (TEST ISSUE in `test_auto_spin.py`'s own `/spin`-count
+logic, not the gesture, not a product defect) stands as the full explanation, and D-011's
+fix should now stop that scenario from cascading into every later test when it happens.
