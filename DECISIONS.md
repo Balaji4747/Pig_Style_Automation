@@ -271,3 +271,49 @@ it — this is now a known, open reliability question for whoever resumes, not a
 one. **The shared session's current state is NOT confirmed clean** — the next person/run
 to use it should expect a possible slow or stuck initial load and budget time accordingly,
 rather than assume a fast start.
+
+## D-013: a FOURTH stuck-round incident live-validating PS-ERR — found and fixed a genuine, previously-unknown mid-round popup; two durability fixes applied
+After D-012, the shared session recovered (confirmed via `tests/test_smoke.py` passing in
+37s) and a live PS-ERR run started cleanly — 3 tests passed, then 3 failed in a row
+(`test_sending_feature_choice_twice_applies_only_once`, `test_free_spins_asset_load_failure_preserves_feature_state`,
+and — most tellingly — `test_offline_spin_shows_connection_lost_and_makes_no_debit`, a test
+that never forces a feature at all). Its failure screenshot showed the base game with a
+"CONGRATULATIONS — YOU HAVE WON 12 FREESPINS — YOU HAVE 2 SPINS LEFT — OK" popup still
+open: a **mid-round retrigger popup**, the same visual template as the known end-of-round
+congrats popup but appearing partway through a Sticky/Raining Wilds round (not just at
+its end) and requiring its own dismissal before the round can continue. Our code had only
+ever checked for this popup once, right before/after `play_feature_spins_to_completion()`'s
+loop — never *inside* the loop — so a mid-round retrigger silently absorbed every
+subsequent Space press (same silently-dropped-input issue as every prior incident) until
+the retry budget ran out, miscounting an in-progress round as "complete."
+Fix 1: `play_feature_spins_to_completion()` now calls `dismiss_congrats_popup_if_present()`
+before every press (and again before the one retry), not just at the loop's boundaries.
+Fix 2 (observability): `ensure_base_game_ready()` previously returned silently even if all
+3 resolve-and-reload retries failed, letting a still-broken session flow into the test
+body — where it then failed a later, unrelated assertion, making the real cause much
+harder to trace (this happened on all four incidents: D-005, D-009/010/011, D-012, and
+this one). It now raises `RuntimeError` immediately if `unfinishedInfo` is still non-null
+after 3 attempts, so a genuinely-unresolvable round fails loudly at its own fixture setup.
+A follow-up diagnostic (`test_zzz_diag3.py`, deleted after use) dumped the full PIXI tree
+during an FS start and surfaced something important about THIS game's PIXI usage: nodes
+stay `visible: true` forever once shown and are never hidden/removed, even long after
+being superseded (the "CHOOSE YOUR FREE SPINS FEATURE" choice screen and a "PROMO FREE
+SPINS" intro screen both still showed `visible: true` 12 seconds into actual FS gameplay,
+while the MEGAWAYS counter and reel symbols were visibly updating underneath). This is a
+stronger, more general statement of the "stale visible flag" gotcha already in CLAUDE.md
+(previously only confirmed for individual nodes like `spinBtn`) — it means a raw dump of
+"all visible-flagged nodes" can never be trusted to show the actual current screen for
+this game; only `get_pixi_node()`'s existing last-match/non-zero-bounds logic, checked for
+one specific name at a time, is reliable. The diagnostic did NOT confirm whether the
+"PROMO FREE SPINS" screen (with "Start"/"Skip" buttons) is ever genuinely blocking in
+practice, or is always just a stale leftover — left unresolved given time already spent;
+if a similar incident recurs, `dismiss_congrats_popup_if_present()` may need a "Start"/
+"Skip" variant too, not just "OK"/"Close".
+**Review**: this makes four independent stuck-round incidents across this run (D-005,
+D-009/010/011, D-012, D-013). Each was root-caused and fixed rather than papered over, but
+the pattern itself (new previously-unknown mid-sequence UI states keep surfacing) suggests
+the underlying architecture — client-side timing guesses standing in for a real per-spin
+completion signal — is inherently fragile for this game, exactly as D-011/D-012 already
+concluded. The structural fix (poll the `/feature` response's own completion signal
+instead of guessing wait durations and reactively patching each newly-found popup) remains
+undone and is the highest-leverage next step if this keeps recurring.

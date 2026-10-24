@@ -22,7 +22,26 @@ rewritten here.
 - Re-ran the full Functional suite (no reruns) after the page-object fix to check for
   regressions — **IN PROGRESS / see note below**.
 
-## CHECKPOINT: live validation paused — see DECISIONS.md D-012
+## CHECKPOINT 2: a fourth stuck-round incident live-validating PS-ERR, found + fixed — see DECISIONS.md D-013
+After CHECKPOINT 1, the session recovered (confirmed via a clean `test_smoke.py` pass) and
+a live PS-ERR run got to 3 passed / 3 failed before being stopped for investigation. Root
+cause: a genuine, previously-unknown mid-round "Congratulations" retrigger popup that
+`play_feature_spins_to_completion()` never checked for mid-loop (only at the loop's
+start/end) — same silently-dropped-input pattern as every prior incident, just a new
+trigger for it. Fixed (dismiss it before every press, not just at the boundaries) and
+hardened `ensure_base_game_ready()` to raise loudly instead of silently continuing with a
+still-broken session after exhausting its retries (this silent-continue behavior is what
+let every one of the four stuck-round incidents this run corrupt a LATER, unrelated test
+instead of failing clearly at its own point of origin). PS-ERR's live run was stopped
+before completion to apply and reason through this fix rather than let 20 more minutes
+run against code already known to be wrong; not yet rerun. The new `tests/edge_boundary/
+test_large_win_display.py` PS-EDG-013 and the PS-UI suite are similarly not yet run live.
+Given four independent timing-fragility incidents in one run, live validation of all new
+suites remains PENDING in `reports/EXECUTION_SUMMARY.md` — see D-013's "Review" for the
+structural fix that would actually close this out (poll the server's own per-spin
+completion signal instead of guessing/patching wait durations and popups one at a time).
+
+## CHECKPOINT 1: live validation paused — see DECISIONS.md D-012
 The live `tests/interruption/` run (30 cases) got as far as 5/30 (3 pass, 1 fail — fixed a
 cleanup gap in that test afterward, see D-012 — 1 that needed a long stuck-round recovery)
 before demonstrating that a single adversarial feature-recovery can legitimately take tens

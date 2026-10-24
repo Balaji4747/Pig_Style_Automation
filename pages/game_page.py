@@ -148,6 +148,17 @@ class GamePage(BasePage):
             self.wait_for(self.is_base_game_ready, timeout_ms=timeout_ms)
             self.wait_for_loading_overlay_to_clear(timeout_ms=timeout_ms)
 
+        # Surface a genuinely-unresolvable round loudly and immediately,
+        # rather than silently handing back a still-broken session to the
+        # caller — confirmed live this let a stuck round cascade into a
+        # later, unrelated test's failure instead of this one's, which made
+        # the real problem much harder to see (three separate incidents,
+        # see DECISIONS.md D-005/D-006/D-009/D-011/D-012).
+        if self.get_init_data().unfinished_info is not None:
+            raise RuntimeError(
+                "ensure_base_game_ready: round still unfinished after 3 resolve-and-reload attempts"
+            )
+
     def is_loaded(self) -> bool:
         """Whether the game's PIXI app has initialized (post goto(), which
         already guarantees the init response arrived)."""
@@ -250,8 +261,20 @@ class GamePage(BasePage):
         retry press before the loop gives up, since a too-early Space press
         during a still-settling celebration is silently dropped by the game
         rather than queued — a single retry recovers from exactly that race
-        without having to prove a universal timing bound."""
+        without having to prove a universal timing bound.
+
+        Also dismisses any "Congratulations" popup before each press, not
+        just at the very end — confirmed live (a *third* session-corruption
+        incident, 25 Oct 2026): this same popup shape can appear MID-round
+        with a lower spin count (e.g. "YOU HAVE WON 12 FREESPINS ... YOU
+        HAVE 2 SPINS LEFT"), i.e. a retrigger grants more spins partway
+        through — not just at the round's natural end. The loop previously
+        only checked for it once resolve_pending_feature() finished playing
+        spins, so a mid-round retrigger popup silently absorbed every Space
+        press until the retry budget ran out, miscounting the round as
+        "complete" while spins actually remained."""
         for _ in range(max_spins):
+            self.dismiss_congrats_popup_if_present()
             self.wait_for_loading_overlay_to_clear()
             self.page.wait_for_timeout(5_000)
             try:
@@ -261,7 +284,9 @@ class GamePage(BasePage):
                 pass
 
             # One retry: the previous press may have been silently dropped
-            # mid-celebration rather than the round actually being over.
+            # mid-celebration (or behind a mid-round retrigger popup) rather
+            # than the round actually being over.
+            self.dismiss_congrats_popup_if_present()
             self.wait_for_loading_overlay_to_clear()
             self.page.wait_for_timeout(5_000)
             try:

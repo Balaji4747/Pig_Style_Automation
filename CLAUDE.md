@@ -150,6 +150,31 @@ passed).
   poll the `/feature` response's own per-spin completion field instead
   (raw shape has `featureResults[].spinResults[]`, each presumably with its
   own closed/done signal — not yet modelled, see Open items).
+- **A "Congratulations" popup can appear MID-round, not just at a round's
+  end** — confirmed live (25 Oct 2026, a *fourth* session-corruption
+  incident): Sticky/Raining Wilds can apparently retrigger more spins
+  partway through ("YOU HAVE WON 12 FREESPINS ... YOU HAVE 2 SPINS LEFT"),
+  showing the exact same popup template as the end-of-round one. Pressing
+  Space while it's showing does nothing (same silently-dropped-input
+  pattern as everywhere else). `play_feature_spins_to_completion()` now
+  calls `dismiss_congrats_popup_if_present()` before every press (and its
+  one retry), not just once at the loop's boundaries.
+- **PIXI nodes in this game stay `visible: true` forever once shown, even
+  long after being superseded** — confirmed more broadly than the
+  originally-documented single-node cases (`spinBtn`, etc.): a full-tree
+  dump taken 12 seconds into active Free Spins gameplay (reels visibly
+  updating, MEGAWAYS counter changing) still showed the "CHOOSE YOUR FREE
+  SPINS FEATURE" choice screen's and a "PROMO FREE SPINS" intro screen's
+  nodes as `visible: true`. **Never trust a raw "all visible-flagged
+  nodes" dump to reflect the actual current screen for this game** — only
+  `get_pixi_node()`'s existing last-match-in-document-order + non-zero-
+  bounds logic, checked for one specific name at a time, is reliable.
+  `ensure_base_game_ready()` no longer returns silently after exhausting
+  its 3 resolve-and-reload retries — it raises `RuntimeError` immediately
+  if a round is still unfinished, so a genuinely-stuck session fails
+  loudly at its own fixture setup instead of corrupting a later, unrelated
+  test's result (every stuck-session incident this project has hit so far
+  was made harder to diagnose by this silent-continue behavior).
 
 ### Network — source of truth for money/round data
 Balance/bet/win/reels/ways come from the intercepted API responses
