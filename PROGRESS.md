@@ -311,3 +311,15 @@ Final result: **12 passed / 12 failed** (9 D-019, 2 D-025-adjacent bet-reset —
 bug in our test code).
 
 Next: PS-FEA (Feature Testing, 59 rows) per the original working order.
+
+## CHECKPOINT 8 (2026-10-25): PS-FEA live-validated — confirmed almost entirely D-019-blocked, no new issues
+Full run: 43 failed / 2 passed / 13 skipped. Checked every distinct error message across all
+43 failures (not just a sample) — all 43 share the exact same D-019 signature (`expected
+this forced spin to trigger a feature` / `is_feature_triggered=False`). This is expected:
+PS-FEA is the Feature Testing sheet, so nearly every case needs a deterministic feature
+trigger, which is exactly what the D-019 cheat-tool blocker breaks. No new test-code bugs
+or product findings this pass — nothing to fix from this side until D-019 is resolved
+upstream.
+
+Next: PS-EDG (Edge & Boundary Cases, 42 rows, 29 already written) per the original working
+order.
