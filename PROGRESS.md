@@ -323,3 +323,30 @@ upstream.
 
 Next: PS-EDG (Edge & Boundary Cases, 42 rows, 29 already written) per the original working
 order.
+
+## CHECKPOINT 9 (2026-10-25): PS-EDG live-validated clean after D-027/D-028/D-029 fixes
+First live run: 7 failed / 5 passed / 23 skipped. Investigated all 7: 2 were D-019, 2 were
+win-assumption tests also explained by D-019 (force a specific outcome, assert it landed),
+and 3 were genuinely new:
+- The Auto Spin count menu hit the same stagger-animation issue already fixed for the bet
+  panel (D-023/D-024) — settle wait added to `open_auto_spin_menu()`, retry added to
+  `AutoSpinPanel.select_spin_count()` (D-027).
+- `test_browser_back_during_spin_completes_round_server_side`: this SPA has no real "back"
+  history target in a fresh tab, so `go_back()` leaves the game origin entirely and the
+  test's own `reload_and_wait_ready()` then times out forever on a blank page. Fixed by
+  re-navigating to the game URL directly (D-028).
+- `test_two_tabs_one_session_stay_balance_consistent`: the test's own docstring already
+  names single-session enforcement as an acceptable outcome, but the code only handled the
+  "both tabs succeed" branch, crashing on a real rejected-spin response. Fixed to handle
+  both outcomes (D-028) — also a genuine live confirmation (not just mocked) that opening a
+  second tab can get the first tab's spin rejected.
+
+A second rerun then surfaced one more instance of the SAME auto-spin menu issue (reopening
+it a second time within the test), confirmed NOT just transient timing (failed again even
+with D-027's retry) — same unresolved "second open of a panel" mystery as D-026. Applied
+the same pragmatic reload-and-retry fallback (D-029).
+
+Final result: **9 passed / 3 failed (all 3 confirmed D-019) / 23 skipped.** PS-EDG is now
+considered live-validated and stable.
+
+Next: PS-UI (UI/UX Testing, 47 rows) per the original working order.
