@@ -410,3 +410,117 @@ completion signal — is inherently fragile for this game, exactly as D-011/D-01
 concluded. The structural fix (poll the `/feature` response's own completion signal
 instead of guessing wait durations and reactively patching each newly-found popup) remains
 undone and is the highest-leverage next step if this keeps recurring.
+
+## D-018: D-017 was necessary but not sufficient — the REAL dominant cause was `force_next_spin()`'s own unverified cheat-panel click, same bug class one layer earlier
+
+Re-ran the full 30-case PS-INT suite after D-017's fix (`ps_int_run6`): 16 failed, 11
+passed, 3 skipped — barely better than before D-017. Read every failure's actual
+traceback (not just the exception class) this time, and found 13 of the 16 failures share
+one line: `assert result.is_feature_triggered, "expected this forced spin to trigger a
+feature"` — the forced `"3 OAK BN"` (or `"3 OAK AA"`) outcome simply never applied to the
+spin immediately after `force_next_spin()`. The other 3 are the by-now-familiar generic
+`TimeoutError: ... waiting for event "response"`, which is the same root cause wearing a
+different hat (a few tests' `trigger()` lambdas bundle the forced spin with other actions,
+so the unmet assertion never gets the chance to fire — the spin they're actually waiting
+for, with the server's real outcome, just takes longer or behaves differently than a
+forced one would, and the fixed 10s timeout trips first).
+Root cause: `CheatPanel.select()` fires a single unverified `.click()`, and
+`force_next_spin()` never confirmed the resulting reload (and its `init` response) actually
+happened before calling `ensure_base_game_ready()` — which, same as always, just confirms
+the EXISTING base game is already ready and returns immediately if nothing actually
+reloaded. A silently-dropped click here means the "forced" spin is just a normal spin,
+indistinguishable from bad luck unless you specifically assert `is_feature_triggered`
+(which most of these tests correctly do) — exactly the same invisible-to-our-usual-signals
+failure mode as D-017, D-016, D-015, D-013, just one call earlier in the chain
+(`force_next_spin()` itself, not the choice screen it leads to). This means the D-017 fix
+was real and worth keeping, but it was fixing the SECOND domino, not the first — most of
+these tests never got far enough to reach the choice screen `choose_free_spins_feature()`
+protects, because the triggering spin itself silently wasn't forced.
+Fix: `force_next_spin()` now wraps the cheat-panel open+select in
+`network_spy.wait_for_response("init", ...)` and retries the whole open+select sequence
+(bounded, 30s default) until that specific reload's init response actually arrives, instead
+of clicking once and trusting `ensure_base_game_ready()`'s already-ready check to vouch for
+it.
+**Review**: this is the same lesson as D-017 applied one step earlier in the call chain —
+worth treating as a standing pattern now, not a one-off: **every single-click "select an
+option that triggers a reload or a state transition" call in this codebase needs its own
+verified-retry wrapper, not just the two sites found so far (`choose_free_spins_feature`,
+`force_next_spin`).** Worth an audit pass over `CheatPanel`, `AutoSpinPanel`,
+`BuyFeaturePanel`, `BetPanel`, `SettingsPage` for the same unverified-single-click shape
+before assuming any of those are reliable under repeated serial use. A fresh PS-INT rerun
+is the immediate next step to confirm this actually clears the bulk of the 16 failures —
+not yet run as of this entry.
+
+## D-019: the cheat-forced-outcome mechanism itself is confirmed NON-FUNCTIONAL in the qa environment — supersedes D-018, PRODUCT/ENVIRONMENT issue, not a test-code bug
+
+Re-ran PS-INT after D-018's fix (`ps_int_run7`): 18 failed, 9 passed, 3 skipped — WORSE
+than before D-018 (run6: 16 failed, 11 passed). Every new/worsened failure was
+`force_next_spin()` itself now timing out after 30s, because the `wait_for_response("init",
+...)` it added never sees a matching response — not because the click fails, but because
+**selecting a cheat outcome causes no network request of any kind.**
+
+Investigated with a disposable diagnostic test (`tests/_diag_force_spin.py`, deleted after
+use) directly against the live qa session, trying every plausible variant in isolation:
+- Selecting "3 OAK BN" in the panel (a normal, successful, single Playwright click; the
+  option visibly gains an `active` class): **zero network requests** follow for 40s —
+  confirmed via a page-wide `response` listener, not just the `init`/`spin`/`feature`
+  patterns. This directly contradicts this file's own prior note ("Selecting an option
+  reloads the game session") — that claim does not hold under direct observation.
+- The panel's real "apply/close" control, `#closeBtn` (found via a DOM scan — the panel has
+  no visible Apply button, only this close icon), is a genuine zero-size element
+  (`getBoundingClientRect()` → 0×0) despite `display/visibility/opacity` all reporting
+  "visible" — Playwright's `.click()` correctly refuses it as non-actionable
+  (`TimeoutError: element is not visible`). Dispatching a raw JS `.click()` on it instead
+  (bypassing actionability) DOES work — `#cheatTool-MainContainer` goes to
+  `display:none` — but still **zero `/init` or `/spin` request** follows.
+- `localStorage`/`sessionStorage` are both empty after selecting+closing — nothing is
+  persisted client-side either, so a reload cannot be "picking the choice back up" from
+  storage.
+- Found the real underlying function via `Object.keys(window)`: `window.setCheatValue`,
+  source `(cheat) => { GameProxy.config.cheatObject = cheat; }`. `GameProxy` itself is a
+  module-closure variable, not exposed on `window` (confirmed: `typeof window.GameProxy ===
+  'undefined'`), so it can't be read back directly, but the setter can be called directly.
+  Calling `window.setCheatValue('3 OAK BN')` directly (bypassing the click entirely, so any
+  click-handling bug is ruled out) and then spinning — tried both via the documented
+  Space-bar shortcut AND via a real `click_pixi_button("spinBtn")` (ruling out an
+  input-method-specific gap) — **still produced an ordinary unforced spin** both times
+  (`is_feature_triggered=False`, `scatter_count=0`).
+- Manually reloading the page after selecting+closing (in case the "reload" step genuinely
+  is required and just isn't automatic) **also had no effect** — expected, since storage is
+  empty and nothing could survive the reload anyway.
+- Confirmed `allowCheat` is still `true` in the current live init response for this
+  session, ruling out "the session simply lost cheat privileges."
+
+Every method of applying a forced outcome — UI click, direct function call, with or
+without closing the panel, with or without an extra reload, spun via spacebar or via a
+real button click — produced the identical "ordinary random spin" result. This rules out
+every test-code-side explanation (click reliability, timing, input method, panel state) and
+points at the mechanism being broken somewhere **server-side or in a build/config gap
+between the client and server** (e.g. the server may no longer honor a `cheatObject`
+field the client never actually transmits in the first place, since no network request
+ever carries it — worth asking the dev team whether `cheatObject` is supposed to ride along
+in the `/spin` request body, since this project's capture of that body currently comes back
+`None` for unrelated reasons (likely a non-JSON content type) and hasn't been inspected raw
+yet).
+
+**Review**: this is very likely the single biggest confirmed finding of the whole PS-INT
+validation effort, and changes the shape of remaining work significantly:
+- Reverted `force_next_spin()` to a fast, honest best-effort call (select + close, no
+  network wait) — D-018's wait-for-init-response logic was based on the disproven "selecting
+  reloads the session" premise and only made things worse (an extra, pointless 30s hang per
+  call) once that premise is known false.
+- Every test across PS-INT, PS-FEA, PS-MTH, PS-REG, PS-UI that calls `force_next_spin()`
+  and then asserts on the forced outcome (`is_feature_triggered`, a specific win amount,
+  etc.) **cannot currently pass reliably** — not because the test is wrong, but because the
+  product/environment feature it depends on does not work right now. These should be
+  classified as ENVIRONMENT-BLOCKED, not rewritten or "fixed" further from the test side,
+  until this is confirmed resolved (or confirmed to have a different required activation
+  step that only engineering would know).
+- This should be raised with the FEG/Pixentech dev team directly: "does the QA cheat tool's
+  forced-outcome selection still work end-to-end right now, and if so, what's the exact
+  required sequence?" — it may be a recent regression (CLAUDE.md's prior note was dated 23
+  Oct 2026, two days before this finding), a QA-environment-specific deploy gap, or this
+  project's test session's token specifically.
+- Tests that DON'T depend on forced outcomes (real/unforced spins, network-fault
+  simulation, refresh/reload of naturally-occurring state, UI/compatibility checks) are
+  unaffected by this and should continue to be run and trusted normally.

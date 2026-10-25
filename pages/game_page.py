@@ -483,10 +483,25 @@ class GamePage(BasePage):
         self.ensure_base_game_ready(timeout_ms=timeout_ms)
 
     def force_next_spin(self, outcome: str) -> None:
-        """Forces a specific outcome (e.g. "3 OAK BN", "6 OAK AA", "BIG WIN")
-        on the next spin, via the built-in cheat tool. Selecting an outcome
-        reloads the game session, so this also re-dismisses the splash
-        screen; call spin_and_wait() afterwards as normal."""
+        """Selects a forced outcome (e.g. "3 OAK BN", "6 OAK AA", "BIG WIN")
+        in the built-in cheat tool and closes the panel.
+
+        CONFIRMED NON-FUNCTIONAL in the qa environment as of 25 Oct 2026
+        (DECISIONS.md D-019) — do not assume the following spin actually
+        reflects `outcome`. Selecting the option does NOT reload the
+        session and causes no network traffic at all (contrary to this
+        method's own earlier documentation); calling the underlying
+        `window.setCheatValue(outcome)` directly, and closing the panel via
+        its real (but zero-size/non-Playwright-actionable) `#closeBtn`
+        — in every combination, including a subsequent manual reload —
+        produced no observable change in the next spin's result
+        (`is_feature_triggered` stayed False, `scatter_count` stayed 0)
+        across repeated live attempts, even though `allowCheat` is still
+        `true` for this session. This is left in place as a best-effort,
+        harmless call in case a future environment/deploy restores the
+        mechanism; any test relying on it to force a result must be
+        treated as blocked until D-019 is re-verified, not fixed by
+        retrying harder client-side."""
         cheat_panel = self.open_cheat_panel()
         cheat_panel.select(outcome)
-        self.ensure_base_game_ready()
+        self.page.evaluate("() => { const el = document.getElementById('closeBtn'); if (el) el.click(); }")

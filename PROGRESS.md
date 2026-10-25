@@ -1,5 +1,38 @@
 # Progress — Autonomous QA Automation Run (started 2026-10-24, continued 2026-10-25)
 
+## CHECKPOINT 4 (2026-10-25): PS-INT validation rerun revealed a BIGGER, unfixable-from-test-code
+## blocker — the cheat-forced-outcome mechanism itself is confirmed non-functional — see DECISIONS.md D-018/D-019
+The Checkpoint 3 validation rerun (`ps_int_run6`) completed: 16 failed / 11 passed / 3
+skipped — the D-017 fix alone did not resolve the cascade. Reading every failure's actual
+traceback (not just the exception class) found 13 of 16 failures shared one line:
+`force_next_spin("3 OAK BN")`'s following spin never had `is_feature_triggered=True`. Fixed
+what looked like the proximate cause (D-018: `force_next_spin()`'s cheat-panel click was
+also unverified, same bug class as D-017) and re-ran (`ps_int_run7`): **got worse** (18
+failed / 9 passed), because the new verification wait (for a reload that D-017's own
+CLAUDE.md note claimed happens) never completed — nothing ever reloads.
+
+Stopped and diagnosed this directly against the live qa session with a disposable
+diagnostic test rather than guessing a third timeout value. Finding (D-019, see that entry
+for the full method-by-method breakdown): **the forced-outcome cheat tool does not work at
+all in this environment right now**, regardless of method — UI click, direct
+`window.setCheatValue()` call, closing the panel via its real (but broken/zero-size)
+`#closeBtn`, with or without a manual reload afterward, spun via the Space-bar shortcut or
+a real button click. Every combination produces an ordinary unforced spin.  `allowCheat` is
+still `true`, ruling out a lost session privilege. This directly contradicts this project's
+own prior "verified end-to-end" note from two days earlier (23 Oct 2026) — something
+changed, or that verification was less thorough than it should have been.
+
+**This is an environment/product-side finding, not a test-code bug, and it cannot be fixed
+by retrying harder in `GamePage`.** `force_next_spin()` has been reverted to a fast,
+honest best-effort call (no pointless 30s hang). Every test across PS-INT, PS-FEA, PS-MTH,
+PS-REG, PS-UI that calls `force_next_spin()` and asserts on the forced result must now be
+treated as **ENVIRONMENT-BLOCKED** until this is confirmed fixed — re-running them won't
+help, and rewriting them won't either. Recommend raising this directly with the FEG/
+Pixentech dev team: does the cheat tool's forced-outcome selection still work end-to-end
+right now, and if so, what exact sequence actually applies it? Tests that use real/unforced
+spins, network-fault simulation, naturally-occurring refresh/reload states, or UI/
+compatibility checks are unaffected and should continue to be trusted normally.
+
 ## CHECKPOINT 3 (2026-10-25): found the real root cause of the session-fragility pattern — see DECISIONS.md D-017
 Continued from Checkpoint 2 per explicit instruction to run everything live and fix what's
 found. A complete 30-case PS-INT run (the first one ever run to full completion without

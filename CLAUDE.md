@@ -308,13 +308,26 @@ populates `#cheatsContainer .cheatDiv` from `assets/panel/cheat.json` with
 named forced outcomes (`"3 OAK BN"`...`"6 OAK BN"` for bonus triggers,
 `"<n> OAK WC"` for wild counts, `"<n> OAK <symbol>"` for specific paytable
 lines, `"BIG WIN"`/`"MEGA WIN"`/`"GIGA WIN"`/`"UNBEL WIN"`/`"FEATURE_MISS"`/
-`"NONE"`). **Selecting an option reloads the game session** (back to the
-splash/loading flow) — the forced outcome applies on the first spin after
-the reload, not immediately. Use `GamePage.force_next_spin(outcome)`.
-This is the recommended way to deterministically hit P0 test cases that
-need a specific trigger (e.g. `PS-FEA-001`: forced 3 BN trigger) instead of
-relying on probability/retries. Verified end-to-end: selecting `"3 OAK BN"`
-reliably landed exactly that many BN symbols on the forced spin.
+`"NONE"`). Use `GamePage.force_next_spin(outcome)`.
+
+**CONFIRMED NON-FUNCTIONAL in the qa environment as of 25 Oct 2026 (DECISIONS.md
+D-019) — do not trust the paragraph below, kept only for history.** The original claim
+here ("selecting an option reloads the game session... verified end-to-end... reliably
+landed exactly that many BN symbols") was written 23 Oct 2026 and no longer holds under
+direct observation two days later: selecting an outcome causes **zero network requests**
+of any kind (confirmed via a page-wide response listener, not just init/spin/feature);
+the panel's real close control (`#closeBtn`) is a genuine zero-size element that Playwright
+correctly refuses as non-actionable, but even a raw JS-dispatched click on it (confirmed to
+close the panel) triggers no request either; calling the underlying
+`window.setCheatValue(outcome)` directly (bypassing the UI entirely) and then spinning via
+either the Space-bar shortcut or a real `spinBtn` click both still produced an ordinary
+unforced spin. `allowCheat` is still `true` for the session, ruling out a lost privilege.
+Every test-code-side explanation (click reliability, timing, input method, panel state,
+needing a reload) has been ruled out live — see D-019 for the full method-by-method
+breakdown. This points at something broken server-side or in a client/server config gap,
+not fixable by retrying harder in test code. Any test that forces an outcome and asserts
+on it must be treated as ENVIRONMENT-BLOCKED until this is re-verified working; re-run the
+diagnostic approach in D-019 before trusting this mechanism again in a future session.
 
 ### Config & paytable
 - `config/env.yaml` holds per-environment settings (qa, staging): game URL,
