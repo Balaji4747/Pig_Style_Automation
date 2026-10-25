@@ -1,4 +1,21 @@
-# Progress — Autonomous QA Automation Run (started 2026-10-24)
+# Progress — Autonomous QA Automation Run (started 2026-10-24, continued 2026-10-25)
+
+## CHECKPOINT 3 (2026-10-25): found the real root cause of the session-fragility pattern — see DECISIONS.md D-017
+Continued from Checkpoint 2 per explicit instruction to run everything live and fix what's
+found. A complete 30-case PS-INT run (the first one ever run to full completion without
+being stopped mid-way) showed 11 passed / 16 failed / 3 skipped — and every single failure
+raised the identical exception (a plain spin timing out waiting for a response). Root
+cause: `choose_free_spins_feature()` fired one unverified click to pick Sticky/Raining
+Wilds; when that click silently failed to register, the choice screen kept absorbing every
+later Space press, and the resulting stuck state was invisible to both of this project's
+recovery checks (`unfinishedInfo`, `is_base_game_ready()`), so nothing ever caught it. This
+most likely explains D-013 through D-016's various symptoms too (same cause, different
+manifestations). Fixed: the choice click now retries until the choice screen actually
+closes. Also wrote 59 more PS-FEA tests, 7 more PS-UI tests, and tagged 115 more PS-REG
+rows (143 of 162 total now tagged) during the many long waits this investigation involved.
+A validation rerun of PS-INT is in progress — see DECISIONS.md D-017's "Review" for why
+this is expected to meaningfully improve the pass rate, and check that run's actual result
+before assuming it's fully resolved.
 
 Working order per instructions: PS-INT -> PS-ERR -> PS-STR -> PS-MTH -> PS-FEA -> PS-EDG ->
 PS-UI -> PS-CMP -> PS-REG, P0 before P1 before P2 within each sheet. See `DECISIONS.md` for

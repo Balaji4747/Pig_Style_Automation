@@ -49,18 +49,22 @@ def test_app_background_signal_during_free_spins_resumes(game_ready):
     PS-INT-012, applied mid-Free-Spins — the feature must still be
     resolvable (not stuck) once the page is foregrounded again.
 
-    Waits for the Free Spins choice screen to actually be showing before
-    dispatching the hidden/visible cycle — confirmed live: dispatching it
-    immediately after the triggering spin's response, during the choice
-    screen's own fade-in transition, left the session unable to recover
-    (reproduced twice). Interacting with a settled state rather than a
-    mid-transition one matches how every other visibilitychange test here
-    behaves. Ref: GR-56."""
+    Chooses the Free Spins feature through the normal, reliable path FIRST,
+    then dispatches the hidden/visible cycle once a round is genuinely
+    running — confirmed live: dispatching it while the choice screen itself
+    is still up left the choice click unable to register afterwards even
+    with retries (reproduced repeatedly; see DECISIONS.md D-017's
+    follow-up), a narrower and more specific version of the already-known
+    "interact with a settled state, not a transition" rule this file
+    follows elsewhere. This also arguably matches the real scenario better
+    — "backgrounded during Free Spins" naturally means during the spins
+    themselves, not the pre-round choice screen. Ref: GR-56."""
     game_ready.force_next_spin("3 OAK BN")
     game_ready.spin_and_wait_feature_trigger_only()
     game_ready.wait_for(
         lambda: game_ready.get_pixi_node_or_none(game_ready.FEATURE_CHOICE_TITLE_NODE) is not None, timeout_ms=15_000
     )
+    game_ready.choose_free_spins_feature("sticky")
 
     game_ready.dispatch_visibility_change(hidden=True)
     game_ready.page.wait_for_timeout(2_000)
@@ -123,14 +127,15 @@ def test_incoming_call_signal_during_free_spins_resumes(game_ready):
     this harness at all (no audio-engine hook), so only "the feature
     resumes/is resolvable afterwards" is checked.
 
-    Waits for the choice screen to actually be showing before dispatching
-    the hidden/visible cycle — see PS-INT-013's docstring for why.
-    Ref: GR-56."""
+    Chooses the feature through the normal path before dispatching the
+    hidden/visible cycle, rather than while the choice screen itself is
+    still up — see PS-INT-013's docstring for why. Ref: GR-56."""
     game_ready.force_next_spin("3 OAK BN")
     game_ready.spin_and_wait_feature_trigger_only()
     game_ready.wait_for(
         lambda: game_ready.get_pixi_node_or_none(game_ready.FEATURE_CHOICE_TITLE_NODE) is not None, timeout_ms=15_000
     )
+    game_ready.choose_free_spins_feature("sticky")
 
     game_ready.dispatch_visibility_change(hidden=True)
     game_ready.page.wait_for_timeout(3_000)
