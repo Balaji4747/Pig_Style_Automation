@@ -691,3 +691,75 @@ is wrong and something else is going on (worth dumping the panel's node tree wit
 immediately after opening, with zero delay, next time, to directly observe whether "1.00"
 genuinely has zero bounds right after open rather than guessing from the first diagnostic's
 indirect evidence).
+
+## D-025: first real wild-involved winning spin captured live — confirms `utils/megaways_calculator.py`'s `evaluate()` does NOT apply the wild multiplier per-way, and under-calculates `total_win` whenever a wild participates in a win
+
+`test_symbol_win_amount_matches_calculator[PS-MTH-017-AA-6OAK]` (an unforced real spin, per
+D-019) failed with `AssertionError: assert Decimal('2') == Decimal('1.50')`. This is the
+**first wild-involved winning spin this project has ever captured** — CLAUDE.md's
+calculator section has stated since 24 Oct 2026 that wild substitution specifically was
+"not yet empirically validated... no complete wild-involved winning sample has been
+captured."
+
+The real server response (`SpinResult`) shows three separate `BB` ways, 3-of-a-kind each:
+- Way 1: `wild_count=1`, server `win_amount=1`
+- Way 2: `wild_count=0`, server `win_amount=0.5`
+- Way 3: `wild_count=0`, server `win_amount=0.5`
+- Server `total_win = 2` (`1 + 0.5 + 0.5`)
+
+`evaluate()` reconstructed the same three ways (symbol, count, and positions all match
+exactly — the base win-evaluation logic is correct) but computed `win=0.50` for **all
+three**, including the wild-involved one, giving `total_win([...]) = 1.50`. The server's
+wild-involved way paid exactly **double** the base-paytable amount for a 3-OAK BB
+(`0.50 -> 1.00`), consistent with `wild_multipliers=[[1, 4, 2]]` in the same response (a
+2x multiplier was active) and with the math file's own confirmed wild-multiplier values
+(x1/x2/x3). `evaluate()` is not reading `wild_multipliers` (or any per-way wild scaling) at
+all when computing a way's `win` — it treats a wild-involved way identically to a
+non-wild one of the same symbol/count.
+
+**Per the standing instruction not to modify `utils/megaways_calculator.py` logic without
+discussion, this file was left unchanged.** The real server behavior is almost certainly
+correct and matches standard Megaways convention (a winning way containing a wild symbol
+should have its win scaled by the round's active wild multiplier) — this looks like a
+genuine, confirmed **calculator (test oracle) bug**, not a product defect. Every other
+PS-MTH symbol/win test that happened to land a non-wild combination continues to pass
+correctly, so this wasn't caught until a wild participated in a win by chance (D-019 means
+these spins are unforced/random, so wild involvement is rare and uncontrollable).
+
+**Impact**: any test asserting `result.total_win == total_win(ways)` will spuriously fail
+whenever the random/unforced spin happens to involve a wild in a winning way — this is a
+TEST-ISSUE-shaped failure (wrong oracle, not wrong server), expected to recur
+intermittently across PS-MTH (and anywhere else this comparison pattern is used) until the
+calculator is fixed. Recommend as the single highest-value next step for whoever reviews
+this: add wild-multiplier-aware scaling to `evaluate()`/`Way.win` — specifically, multiply
+a way's base paytable win by the active `wild_multipliers` value whenever `wild_count > 0`
+for that way — then re-validate against this exact captured sample
+(`round_id='4e48e50d-3bf7-4e9a-9ff4-656fc8beeb73'`, reel_view and full `SpinResult` are in
+this entry's traceback in `reports/_run_logs/` — worth saving as a new
+`docs/samples/spin_response_with_wild_win.json`, since no such sample currently exists and
+this is the first one captured).
+
+## D-026: both PS-MTH bet-reset cleanup failures (D-023/D-024) are now confirmed to be a persistent, not merely transient, issue — made non-fatal rather than chased further
+
+Re-ran PS-MTH after D-024's settle-wait fix: `test_symbol_win_amount_at_reduced_bet` and
+`test_symbol_win_amount_at_min_bet_rounding` **both still failed** at the exact same
+"1.00"/"default_bet" reset step, with the exact same `RuntimeError: No visible PIXI node
+with text '1.00' found` — confirming D-023's retry and D-024's 1s settle wait are both
+insufficient. In both cases the real assertion (`result.total_win == total_win(ways)`,
+unaffected by D-025's wild-multiplier gap in this run — neither of these two forced a
+wild-involved combination) had already passed before the failure.
+
+Given three consecutive fix attempts targeting the click/timing mechanism did not resolve
+it, stopped chasing the root cause further (it is cleanup-only and does not affect either
+test's real claim) and instead made it non-fatal: both tests now catch the `RuntimeError`
+around the bet-reset step and fall back to `reload_and_wait_ready()`, which is already a
+proven-reliable recovery mechanism elsewhere in this project, rather than letting an
+unrelated teardown action fail an otherwise-correct test.
+
+**Review**: the underlying mechanism (why "1.00" specifically becomes unfindable after a
+real forced-spin attempt, reliably, across three different real test runs, despite being
+directly observed present and correctly-bounded in an isolated diagnostic that skipped the
+spin step) is still not understood. If this pattern surfaces again somewhere a reload
+fallback isn't appropriate, it's worth a dedicated live investigation comparing the PIXI
+tree immediately after `open_bet_panel()` in the failing in-test context versus the
+diagnostic's non-failing context, rather than guessing at another timing fix.

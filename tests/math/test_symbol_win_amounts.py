@@ -76,9 +76,17 @@ def test_symbol_win_amount_at_reduced_bet(game_ready):
     ways = evaluate(result.reel_view, pay_table, result.bet_amount_used)
     assert result.total_win == total_win(ways)
 
+    # Resetting the bet is cleanup, not part of this test's claim (already
+    # verified above) — confirmed live (D-025) that this reset can still
+    # fail to find the target bet label even after open_bet_panel()'s own
+    # settle wait (D-024) and select_bet()'s own retry (D-023); fall back
+    # to a reload rather than failing an otherwise-passed test over cleanup.
     bet_panel = game_ready.open_bet_panel()
-    bet_panel.select_bet("1.00")
-    bet_panel.confirm()
+    try:
+        bet_panel.select_bet("1.00")
+        bet_panel.confirm()
+    except RuntimeError:
+        game_ready.reload_and_wait_ready()
 
 
 @pytest.mark.math
@@ -101,6 +109,12 @@ def test_symbol_win_amount_at_min_bet_rounding(game_ready, init_data):
     ways = evaluate(result.reel_view, pay_table, result.bet_amount_used)
     assert result.total_win == total_win(ways)
 
+    # See D-025: resetting the bet is cleanup, not part of this test's
+    # claim (already verified above) — fall back to a reload rather than
+    # failing an otherwise-passed test over a flaky cleanup click.
     bet_panel = game_ready.open_bet_panel()
-    bet_panel.select_bet(f"{init_data.player_info.default_bet:.2f}")
-    bet_panel.confirm()
+    try:
+        bet_panel.select_bet(f"{init_data.player_info.default_bet:.2f}")
+        bet_panel.confirm()
+    except RuntimeError:
+        game_ready.reload_and_wait_ready()

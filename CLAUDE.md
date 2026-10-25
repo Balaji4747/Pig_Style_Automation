@@ -277,12 +277,28 @@ the math file: `BG Calc!K19` hardcodes `Bet=20`; the QA team's own
 `OBS-04` states "wins are multiplied by the number of ways (product of
 symbol counts per reel)".
 
-**Not yet empirically validated**: wild (WC) substitution specifically —
-no complete wild-involved winning sample has been captured (two attempts
-timed out after the cheat-tool reload; see `docs/samples/README.md`). It's
-backed instead by the math file's wild weight table (WC weight is 0 on
-reels 1/6, non-zero on 2-5 — confirms reel scope) plus `OBS-02` and
-standard Megaways convention. Revisit if a wild-involved sample surfaces.
+**CONFIRMED BUG (25 Oct 2026, D-025): `evaluate()` does NOT apply the wild
+multiplier per-way, and under-calculates `total_win` whenever a wild
+participates in a win.** The first wild-involved winning spin this project
+has captured (an unforced real spin — see D-019) showed the server paying a
+wild-involved way (`wild_count=1`) exactly double the base paytable amount
+(`0.50 -> 1.00`, consistent with the response's own `wild_multipliers`
+field), while `evaluate()` computed the same `0.50` for that way as for the
+two non-wild ways in the same spin, undercounting `total_win` by the
+multiplier difference (`Decimal('1.50')` vs. the server's real
+`Decimal('2')`). Base way-reconstruction (symbol/count/positions) was
+exactly correct — only the per-way wild scaling is missing. **Left
+unfixed per the standing instruction not to modify this file's logic
+without discussion** — any test comparing `total_win` to this oracle will
+intermittently fail whenever an unforced spin happens to land a
+wild-involved win. See DECISIONS.md D-025 for the full evidence (the
+captured spin's exact field values are in that entry; the raw JSON itself
+was not persisted to `docs/samples/` — only the parsed `SpinResult` from
+the test's own assertion-failure output was captured, so a verbatim raw
+sample still needs capturing the next time a wild-involved win occurs
+live). Fixing this (scale a way's win by the active wild multiplier
+whenever `wild_count > 0`) is the single highest-value remaining gap in
+this calculator.
 
 **Deliberately out of scope**: no max-win-cap logic. The math file only
 reports *uncapped* theoretical "Max Exposure" (up to 1,674,912 credits for
