@@ -309,6 +309,32 @@ one specific name at a time, is reliable. The diagnostic did NOT confirm whether
 practice, or is always just a stale leftover — left unresolved given time already spent;
 if a similar incident recurs, `dismiss_congrats_popup_if_present()` may need a "Start"/
 "Skip" variant too, not just "OK"/"Close".
+## D-014: discovered a real, confirmed connection-error dialog — fixed recovery for offline/network-fault tests
+Re-running PS-INT live after D-013 surfaced a genuinely new, valuable, confirmed UI
+element: a real "Info" dialog the game itself shows on connection loss — "The game
+connection was interrupted. Please check your internet connection. Your game round, if
+already started, will be completed according to the game rules." with a "Close" button
+and "Error Code: 9999". This renders crisp/anti-aliased (unlike the surrounding canvas
+content), suggesting a platform-level DOM overlay rather than a PIXI node, the same
+pattern as the Rules/Paytable panel.
+Several PS-INT network-fault tests (`test_network_loss_before_spin_request_makes_no_debit`,
+`test_network_loss_during_free_spins_continues_from_server_state`, and likely others using
+`set_offline()`) failed because, after restoring connectivity, this dialog was still
+showing and blocking the recovery spin — my page objects had no way to detect/dismiss it.
+**This is valuable evidence for PS-ERR-017** ("Error message text" — clear, includes a
+code, no stack trace — confirmed: this dialog genuinely meets that bar) and for every
+network-fault test's own expected result ("error shown; no debit; recoverable") — we can
+now actually confirm the "error shown" half, not just infer it.
+Fix: added `GamePage.dismiss_connection_error_if_present()` (DOM-first via
+`get_by_text("Close")`, PIXI fallback), wired into `spin()` (before every spin attempt)
+and `ensure_base_game_ready()`. Also fixed `test_viewport_rotation_during_win_presentation_keeps_correct_values`
+(PS-INT-016), which failed for an unrelated reason: it asserted exact balance equality
+after a reload, not accounting for the already-documented possibility that the forced
+"3 OAK AA" outcome incidentally triggers a Bonus too — changed to `>=`.
+**Review**: the PS-INT live run was not restarted from scratch after this fix (continued
+observing the in-flight run using the old code to gather more data cheaply); a clean
+rerun is needed to get real pass/fail numbers for the tests this fix touches.
+
 **Review**: this makes four independent stuck-round incidents across this run (D-005,
 D-009/010/011, D-012, D-013). Each was root-caused and fixed rather than papered over, but
 the pattern itself (new previously-unknown mid-sequence UI states keep surfacing) suggests

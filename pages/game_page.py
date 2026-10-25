@@ -131,6 +131,7 @@ class GamePage(BasePage):
             self.dismiss_splash(timeout_ms=timeout_ms)
         self.wait_for(self.is_base_game_ready, timeout_ms=timeout_ms)
         self.wait_for_loading_overlay_to_clear(timeout_ms=timeout_ms)
+        self.dismiss_connection_error_if_present()
 
         # resolve_pending_feature() is itself best-effort (timing-based), so
         # a single pass is not guaranteed to fully drain a round with an
@@ -190,6 +191,7 @@ class GamePage(BasePage):
         button's computed bounds did not reliably register with the game's
         event system, while Space was 100% reliable. See CLAUDE.md > Locator
         strategy for details."""
+        self.dismiss_connection_error_if_present()
         self.wait_for_loading_overlay_to_clear()
         # The game ignores spin input while the previous round's win
         # presentation (rollup/celebration animation) is still playing —
@@ -293,6 +295,28 @@ class GamePage(BasePage):
                 self.network_spy.wait_for_response("feature", self.press_space_bar, timeout_ms=response_timeout_ms)
             except PlaywrightTimeoutError:
                 break
+
+    def dismiss_connection_error_if_present(self, timeout_ms: int = 5_000) -> None:
+        """Dismisses the "Info / The game connection was interrupted ...
+        Error Code: 9999" dialog if present — confirmed live (25 Oct 2026)
+        shown by the game itself on real connectivity loss, with a "Close"
+        button. Tried as a real DOM element first (it renders crisp/
+        anti-aliased unlike the surrounding canvas content, suggesting a
+        platform-level overlay rather than a PIXI node, the same pattern as
+        the Rules/Paytable panel), falling back to a PIXI click in case it's
+        canvas-rendered after all. No-op if neither finds it (dialog not
+        showing)."""
+        try:
+            close_button = self.page.get_by_text("Close", exact=True)
+            if close_button.count() > 0 and close_button.first.is_visible():
+                close_button.first.click()
+                return
+        except Exception:
+            pass
+        try:
+            self.click_pixi_text("Close")
+        except RuntimeError:
+            pass
 
     def dismiss_congrats_popup_if_present(self, timeout_ms: int = 5_000) -> None:
         if self.get_pixi_node_or_none(self.CONGRATS_TEXT_NODE) is None:

@@ -176,6 +176,17 @@ passed).
   test's result (every stuck-session incident this project has hit so far
   was made harder to diagnose by this silent-continue behavior).
 
+### Confirmed connection-error dialog
+On real connectivity loss, the game shows a dialog: title "Info", body "The game
+connection was interrupted. Please check your internet connection. Your game round, if
+already started, will be completed according to the game rules.", a "Close" button, and
+"Error Code: 9999" — confirmed live (25 Oct 2026). Renders crisp/anti-aliased unlike the
+surrounding canvas, suggesting a platform-level DOM overlay (same pattern as the Rules/
+Paytable panel) rather than a PIXI node. `GamePage.dismiss_connection_error_if_present()`
+detects and closes it (DOM-first via `get_by_text("Close")`, PIXI fallback) — called at
+the top of `spin()` and inside `ensure_base_game_ready()`, since any network-fault test
+that restores connectivity needs this dismissed before a recovery spin will register.
+
 ### Network — source of truth for money/round data
 Balance/bet/win/reels/ways come from the intercepted API responses
 (`utils/network_spy.py`), **not** from canvas pixels or OCR. Real samples of
