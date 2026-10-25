@@ -113,8 +113,19 @@ def test_win_field_shows_total_and_resets_next_spin(game_ready):
 @pytest.mark.test_case("PS-UI-036")
 def test_no_template_placeholders_visible_anywhere(game_ready):
     """PS-UI-036 (P0): no unresolved template placeholder (e.g. "{{text1}}")
-    may appear anywhere in the visible UI — scans every visible PIXI text
-    node on the base game screen. Ref: GR-28, GR-54 | OBS-09."""
+    may appear anywhere in the visible UI — scans every genuinely on-screen
+    PIXI text node. Ref: GR-28, GR-54 | OBS-09.
+
+    Checks `worldVisible` (PIXI's own ancestor-chain-aware visibility),
+    not just the node's own local `visible` flag — confirmed live (D-030)
+    that a raw per-node `.visible` check flags a dormant jackpot-message
+    template ("...has won {{text2}} from {{text3}} Jackpot...") that is
+    never genuinely shown to a player: this game's `jackpot_info` is
+    always `None` (no jackpot feature active), and this exact node also
+    surfaced unprompted in unrelated diagnostics elsewhere in this project
+    (see DECISIONS.md D-030) — consistent with it being a shared/bundled
+    platform component whose container is kept hidden, not something this
+    game ever actually displays."""
     texts = game_ready.page.evaluate(
         """() => {
             const app = window.__PIXI_APP__;
@@ -122,7 +133,8 @@ def test_no_template_placeholders_visible_anywhere(game_ready):
             const out = [];
             (function walk(n) {
                 if (!n) return;
-                if (n.visible && typeof n.text === 'string' && n.text.length > 0) {
+                const visible = typeof n.worldVisible === 'boolean' ? n.worldVisible : n.visible;
+                if (visible && typeof n.text === 'string' && n.text.length > 0) {
                     let b = null;
                     try { b = n.getBounds(); } catch (e) {}
                     if (b && b.width > 0 && b.height > 0) out.push(n.text);

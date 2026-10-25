@@ -169,6 +169,16 @@ passed).
   nodes" dump to reflect the actual current screen for this game** — only
   `get_pixi_node()`'s existing last-match-in-document-order + non-zero-
   bounds logic, checked for one specific name at a time, is reliable.
+  **If a tree-wide scan is genuinely needed anyway** (e.g. PS-UI-036's
+  "no unresolved template placeholder anywhere" check), check PIXI's own
+  `worldVisible` on each node instead of its local `visible` flag —
+  `worldVisible` correctly accounts for the whole ancestor chain, so a
+  node whose *parent* container is hidden (e.g. a jackpot popup shell
+  never shown because this session has no active jackpot —
+  `jackpot_info` is always `None`) is correctly excluded even though its
+  own `visible` flag is (as always) stuck `true`. Confirmed live (D-030):
+  a dormant jackpot-message template with unresolved `{{text1..4}}`
+  placeholders was a false positive from exactly this gap.
   `ensure_base_game_ready()` no longer returns silently after exhausting
   its 3 resolve-and-reload retries — it raises `RuntimeError` immediately
   if a round is still unfinished, so a genuinely-stuck session fails

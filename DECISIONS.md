@@ -826,3 +826,37 @@ than root-caused. This is common enough now that it may be worth a dedicated inv
 pass if it keeps recurring in sheets not yet run (PS-UI, PS-CMP, PS-REG) — likely connects to
 the same general "long-session stale-PIXI-state accumulation" pattern CLAUDE.md already
 documents, just not yet isolated to a specific mechanism.
+
+## D-030: PS-UI-036's placeholder scan flagged a dormant jackpot-message template never actually shown to a player — fixed to check PIXI's ancestor-aware `worldVisible` instead of the node's own local `visible` flag
+
+First live PS-UI run: 3 failed / 9 passed. 2 of 3 were D-019. The third,
+`test_no_template_placeholders_visible_anywhere` (PS-UI-036, a P0 check), failed with:
+`['User<jpUserColor> {{text1}} </jpUserColor>has won <jpValueColor>{{text2}}</jpValueColor>
+from <jpNameColor>{{text3}} Jackpot </jpNameColor>in <gameNameColor>{{text4}}</gameNameColor>
+game.']` — an unresolved-placeholder jackpot win message.
+
+Investigated rather than accepting at face value, since this exact node's text had already
+been seen, unprompted, in completely unrelated diagnostic dumps earlier this session (the
+D-019 investigation's full-tree dumps, taken while poking at the bet panel and cheat tool —
+nothing to do with jackpots). Two independent facts point away from a genuine defect:
+- Every captured `SpinResult` in this project has `jackpot_info=None` — this game has no
+  active jackpot feature in this session, so a jackpot banner has no legitimate trigger to
+  ever fire from.
+- The test's own detection method only checks each node's own local `.visible` flag, exactly
+  the "raw all-visible-nodes dump" anti-pattern this project's CLAUDE.md already warns
+  against — PIXI.js separately exposes `worldVisible`, which correctly accounts for the
+  entire ancestor chain's visibility (a node can have `visible: true` on itself while a
+  parent container — e.g. a jackpot popup shell, shown only on a real jackpot event — has
+  `visible: false`, making the child genuinely invisible on screen despite its own flag).
+
+Fixed: the test now checks `worldVisible` (falling back to `visible` if unavailable) instead
+of the node's own local flag. This is a general-purpose correction, not a one-off
+workaround — any future "scan every visible node" style check in this codebase should
+prefer `worldVisible` for the same reason.
+
+**Review**: classified as a TEST ISSUE (false positive from an overly naive visibility
+check), not a product defect — a real player would never see this message under any
+reachable game state in this session. If a jackpot feature is later confirmed to exist and
+become reachable, revisit this node specifically to confirm its real display DOES resolve
+`{{text1..4}}` correctly when a jackpot genuinely fires (orthogonal to this fix, which only
+addresses the false-positive detection, not whether the jackpot template itself is correct).
