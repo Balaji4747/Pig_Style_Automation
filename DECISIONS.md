@@ -860,3 +860,56 @@ reachable game state in this session. If a jackpot feature is later confirmed to
 become reachable, revisit this node specifically to confirm its real display DOES resolve
 `{{text1..4}}` correctly when a jackpot genuinely fires (orthogonal to this fix, which only
 addresses the false-positive detection, not whether the jackpot template itself is correct).
+
+**Update (see D-031): this fix did not resolve the issue.** A second live rerun
+(`ps_ui_run2`) flagged the exact same offending text again, proving `worldVisible` is ALSO
+`true` for this node's entire ancestor chain — it is not hidden by any visibility flag at
+all. See D-031 for the actual root cause and fix.
+
+## D-031: D-030's `worldVisible` fix was insufficient — the jackpot template node is "visible" by every PIXI flag but parked off-screen; also fixed an unforced-spin test that wrongly assumed every spin closes the round
+
+Second live PS-UI run (`ps_ui_run2`): 5 failed / 6 passed / 1 error. 3 of the 5 failures are
+confirmed D-019 (`test_bet_and_buy_disabled_during_free_spins`,
+`test_balance_field_updates_on_debit_and_credit`, `test_win_field_shows_total_and_resets_next_spin`
+— all three use `force_next_spin`). The other two are genuinely new:
+
+**1. PS-UI-036 placeholder false positive, still present after D-030.** The exact same
+jackpot-message text was flagged again:
+`['User<jpUserColor> {{text1}} </jpUserColor>has won <jpValueColor>{{text2}}</jpValueColor>
+from <jpNameColor>{{text3}} Jackpot </jpNameColor>in <gameNameColor>{{text4}}</gameNameColor>
+game.']`. This disproves the D-030 "hidden ancestor container" theory — `worldVisible`
+evaluates `true` for the whole chain, so no visibility flag anywhere in the node's ancestry
+is hiding it.
+
+New theory, confirmed by inspecting the node's `getBounds()` directly: it is positioned
+**off-screen** — translated outside the canvas's visible rendering area — rather than hidden
+via any visibility/alpha mechanism. This is a standard "parked popup" pattern: keep a
+not-currently-needed popup fully "visible" (so it can animate in without a visibility-toggle
+race) but moved off the stage until the moment it's actually shown.
+
+Fixed: the scan now additionally requires the node's bounds to intersect `app.screen`
+(PIXI's own canvas-area rect, falling back to `app.renderer.width/height`), in addition to
+`worldVisible` and non-zero size. A node that is "visible" and correctly sized but entirely
+outside the canvas's drawable area cannot be seen by a real player and is no longer flagged.
+
+**2. `test_game_stays_interactive_at_resolution[PS-UI-005-390x844-portrait]` — two bugs.**
+(a) This is an unforced spin, so it can incidentally trigger a real feature — confirmed live
+via a captured `SpinResult` with `is_feature_triggered=True, next_feature='pickFeature',
+scatter_count=4, closed=False`. The test asserted `result.closed` unconditionally, but
+`spin_and_wait()` already fully resolves the feature internally before returning — the
+`result` it returns is still the ORIGINAL triggering spin's own response, whose own `closed`
+is legitimately `False` (the round correctly continues into Free Spins at that point). Fixed:
+only assert `closed` when `not result.is_feature_triggered`.
+(b) The failed assertion caused the test to exit without restoring the viewport to desktop
+size, which broke the next test's (`PS-UI-006`) fixture setup entirely (`ERROR at setup`
+inside `dismiss_connection_error_if_present()`, since that mobile viewport was never
+intended to persist). Fixed: wrapped the body in `try/finally` so the viewport is always
+restored to 1280x720, pass or fail.
+
+**Review**: finding 1 is a TEST ISSUE (visibility-detection heuristic was still incomplete,
+not a product defect — see D-030's review for why this node is never player-reachable).
+Finding 2a is a TEST ISSUE (wrong assumption about `spin_and_wait()`'s return value under an
+incidental feature trigger). Finding 2b is a TEST ISSUE but worth generalizing: any test that
+mutates global page state (viewport, mute, etc.) should restore it in a `finally`, since a
+failure partway through otherwise corrupts whatever test runs next — none of this indicates a
+product defect.

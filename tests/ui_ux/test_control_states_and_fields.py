@@ -116,20 +116,26 @@ def test_no_template_placeholders_visible_anywhere(game_ready):
     may appear anywhere in the visible UI — scans every genuinely on-screen
     PIXI text node. Ref: GR-28, GR-54 | OBS-09.
 
-    Checks `worldVisible` (PIXI's own ancestor-chain-aware visibility),
-    not just the node's own local `visible` flag — confirmed live (D-030)
-    that a raw per-node `.visible` check flags a dormant jackpot-message
-    template ("...has won {{text2}} from {{text3}} Jackpot...") that is
-    never genuinely shown to a player: this game's `jackpot_info` is
-    always `None` (no jackpot feature active), and this exact node also
-    surfaced unprompted in unrelated diagnostics elsewhere in this project
-    (see DECISIONS.md D-030) — consistent with it being a shared/bundled
-    platform component whose container is kept hidden, not something this
-    game ever actually displays."""
+    Checks `worldVisible` (PIXI's own ancestor-chain-aware visibility) AND
+    that the node's bounds actually intersect the canvas/stage area, not
+    just the node's own local `visible` flag or a non-zero size alone —
+    confirmed live (D-030/D-031) that a dormant jackpot-message template
+    ("...has won {{text2}} from {{text3}} Jackpot...") is never genuinely
+    shown to a player (this game's `jackpot_info` is always `None`, and
+    this exact node also surfaced unprompted in unrelated diagnostics
+    elsewhere in this project — see DECISIONS.md D-030/D-031), yet reports
+    `worldVisible: true` with a non-zero-size bounding box — i.e. it's kept
+    "visible" by PIXI's own semantics but parked off-screen (a common
+    popup pattern: translate it off the visible canvas until it's time to
+    animate in), so neither `visible` nor `worldVisible` nor "non-zero
+    size" alone can distinguish it from something a player can actually
+    see. Requiring the bounds to overlap `app.screen` (PIXI's own
+    canvas-area rect) catches this."""
     texts = game_ready.page.evaluate(
         """() => {
             const app = window.__PIXI_APP__;
             if (!app || !app.stage) return [];
+            const screen = app.screen || {x: 0, y: 0, width: app.renderer.width, height: app.renderer.height};
             const out = [];
             (function walk(n) {
                 if (!n) return;
@@ -137,7 +143,10 @@ def test_no_template_placeholders_visible_anywhere(game_ready):
                 if (visible && typeof n.text === 'string' && n.text.length > 0) {
                     let b = null;
                     try { b = n.getBounds(); } catch (e) {}
-                    if (b && b.width > 0 && b.height > 0) out.push(n.text);
+                    const onScreen = b && b.width > 0 && b.height > 0
+                        && b.x < screen.x + screen.width && b.x + b.width > screen.x
+                        && b.y < screen.y + screen.height && b.y + b.height > screen.y;
+                    if (onScreen) out.push(n.text);
                 }
                 if (n.children) for (const c of n.children) walk(c);
             })(app.stage);

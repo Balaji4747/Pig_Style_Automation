@@ -29,11 +29,23 @@ def test_game_stays_interactive_at_resolution(game_ready, width, height):
     game_ready.page.set_viewport_size({"width": width, "height": height})
     game_ready.page.wait_for_timeout(1_000)
 
-    assert game_ready.is_base_game_ready()
-    result = game_ready.spin_and_wait()
-    assert result.closed
+    try:
+        assert game_ready.is_base_game_ready()
+        result = game_ready.spin_and_wait()
+        # Confirmed live (D-031): this is an unforced spin, so it can
+        # incidentally trigger a real feature — in which case `result` is
+        # the TRIGGERING spin's own response, whose own `closed` is
+        # correctly False (the round continues into Free Spins), even
+        # though spin_and_wait() has already fully resolved the feature
+        # by the time it returns. Only assert `closed` for a spin that
+        # didn't trigger a feature.
+        if not result.is_feature_triggered:
+            assert result.closed
 
-    game_ready.screenshot(f"ps_ui_{width}x{height}")
-
-    # Restore a standard desktop viewport for whatever runs next.
-    game_ready.page.set_viewport_size({"width": 1280, "height": 720})
+        game_ready.screenshot(f"ps_ui_{width}x{height}")
+    finally:
+        # Restore a standard desktop viewport for whatever runs next,
+        # even if an assertion above failed — confirmed live (D-031) that
+        # leaving a mobile viewport active broke the next test's own
+        # fixture setup.
+        game_ready.page.set_viewport_size({"width": 1280, "height": 720})
