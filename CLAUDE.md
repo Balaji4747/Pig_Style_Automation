@@ -170,15 +170,25 @@ passed).
   `get_pixi_node()`'s existing last-match-in-document-order + non-zero-
   bounds logic, checked for one specific name at a time, is reliable.
   **If a tree-wide scan is genuinely needed anyway** (e.g. PS-UI-036's
-  "no unresolved template placeholder anywhere" check), check PIXI's own
-  `worldVisible` on each node instead of its local `visible` flag —
-  `worldVisible` correctly accounts for the whole ancestor chain, so a
-  node whose *parent* container is hidden (e.g. a jackpot popup shell
-  never shown because this session has no active jackpot —
-  `jackpot_info` is always `None`) is correctly excluded even though its
-  own `visible` flag is (as always) stuck `true`. Confirmed live (D-030):
-  a dormant jackpot-message template with unresolved `{{text1..4}}`
-  placeholders was a false positive from exactly this gap.
+  "no unresolved template placeholder anywhere" check), do NOT rely on
+  `node.worldVisible`/`node.worldAlpha` — **confirmed live (D-032) this
+  PIXI build doesn't expose either property at all** (both `undefined` on
+  every node), which silently made an earlier fix (D-030) a no-op since it
+  fell through to the same local-`visible`-only check it was meant to
+  replace. Instead, walk the tree yourself and manually AND each node's own
+  `visible` flag with its accumulated ancestor visibility as you recurse
+  (`visible = inheritedVisible && n.visible !== false`) — a node whose
+  *parent* container is hidden (e.g. a jackpot popup shell never shown
+  because this session has no active jackpot — `jackpot_info` is always
+  `None`) is then correctly excluded even though its own `visible` flag is
+  (as always) stuck `true`. Also require the node's `getBounds()` to
+  intersect `app.screen` as a second, independent safety net against an
+  off-screen-but-flagged-visible node (D-031). Confirmed live (D-030/D-031/
+  D-032): a dormant jackpot-message template with unresolved `{{text1..4}}`
+  placeholders was a false positive from exactly this gap, and took three
+  rounds of live diagnosis to pin down — don't skip straight to a plausible-
+  sounding PIXI API without confirming live what that API actually returns
+  on this specific build first.
   `ensure_base_game_ready()` no longer returns silently after exhausting
   its 3 resolve-and-reload retries — it raises `RuntimeError` immediately
   if a round is still unfinished, so a genuinely-stuck session fails

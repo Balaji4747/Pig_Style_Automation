@@ -913,3 +913,46 @@ incidental feature trigger). Finding 2b is a TEST ISSUE but worth generalizing: 
 mutates global page state (viewport, mute, etc.) should restore it in a `finally`, since a
 failure partway through otherwise corrupts whatever test runs next — none of this indicates a
 product defect.
+
+**Update: finding 1's fix (canvas-bounds intersection) also did not resolve the issue —
+see D-032 for the actual root cause.**
+
+## D-032: the real reason PS-UI-036 kept false-positiving — this PIXI build doesn't expose `worldVisible`/`worldAlpha` at all, so D-030's fix was silently a no-op
+
+Third live PS-UI run (`ps_ui_run3`), after the D-031 bounds-intersection fix: 4 failed / 8
+passed, 3 of 4 confirmed D-019. `test_no_template_placeholders_visible_anywhere` still failed
+with the exact same offending text as D-030 and D-031.
+
+Stopped guessing further theories and wrote a disposable diagnostic test
+(`tests/_diag_placeholder.py`, deleted after use) to dump the actual live property chain for
+the offending node instead. Result: `n.worldVisible` and `n.worldAlpha` are both `undefined`
+(serialize to `None`) on every node in this PIXI build. This means the test's own ternary —
+`typeof n.worldVisible === 'boolean' ? n.worldVisible : n.visible` — has been silently falling
+through to the `n.visible` branch on every single evaluation since D-030 was written, making
+that entire fix a no-op that happened to look plausible in code review.
+
+The diagnostic's captured ancestor chain for the actual text node (`msgText`) shows the real
+shape of the bug:
+```
+msgText              visible=True   (the text node itself)
+jpHitCelebrationComp visible=False  (its direct parent — never shown, jackpot_info is None)
+SLOT_GAME_APP_CONFIG visible=True
+appContainer         visible=True
+(stage)              visible=True
+```
+`msgText`'s own flag is `true`; only its immediate parent is `false`. A per-node check can
+never see this without walking the chain itself.
+
+Fixed: rewrote the scan to manually accumulate visibility while recursing (AND the running
+`inheritedVisible` down from the stage through each level, `visible = inheritedVisible &&
+n.visible !== false`), instead of relying on any PIXI-provided `worldVisible` property. Kept
+D-031's canvas-bounds-intersection check alongside this as a second, independent safety net.
+
+**Review**: TEST ISSUE (the detection heuristic itself, across three attempts, was the
+problem — D-030's and D-031's theories about this specific node were both reasonable but
+wrong; the manual-chain-walk approach is more robust going forward since it doesn't depend on
+API shape assumptions about a specific PIXI build/version). Not a product defect — reconfirms
+the same conclusion each prior attempt reached: this jackpot template is never player-visible
+in this session. **CLAUDE.md's existing `worldVisible` guidance (written from D-030) is now
+corrected** — this PIXI build doesn't support it; any future "scan the whole tree" check in
+this codebase must walk and AND the ancestor chain itself, not rely on `worldVisible`.

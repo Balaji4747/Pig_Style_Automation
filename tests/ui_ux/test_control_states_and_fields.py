@@ -116,30 +116,32 @@ def test_no_template_placeholders_visible_anywhere(game_ready):
     may appear anywhere in the visible UI — scans every genuinely on-screen
     PIXI text node. Ref: GR-28, GR-54 | OBS-09.
 
-    Checks `worldVisible` (PIXI's own ancestor-chain-aware visibility) AND
-    that the node's bounds actually intersect the canvas/stage area, not
-    just the node's own local `visible` flag or a non-zero size alone —
-    confirmed live (D-030/D-031) that a dormant jackpot-message template
-    ("...has won {{text2}} from {{text3}} Jackpot...") is never genuinely
-    shown to a player (this game's `jackpot_info` is always `None`, and
-    this exact node also surfaced unprompted in unrelated diagnostics
-    elsewhere in this project — see DECISIONS.md D-030/D-031), yet reports
-    `worldVisible: true` with a non-zero-size bounding box — i.e. it's kept
-    "visible" by PIXI's own semantics but parked off-screen (a common
-    popup pattern: translate it off the visible canvas until it's time to
-    animate in), so neither `visible` nor `worldVisible` nor "non-zero
-    size" alone can distinguish it from something a player can actually
-    see. Requiring the bounds to overlap `app.screen` (PIXI's own
-    canvas-area rect) catches this."""
+    Walks the scene graph tracking each node's OWN ancestor-chain visibility
+    manually (accumulating `visible` down from the root as it recurses), not
+    `node.worldVisible` — confirmed live (D-032) that this PIXI build does
+    not expose `worldVisible`/`worldAlpha` at all (`undefined` on every
+    node), which silently made the D-030 fix a no-op (it fell through to
+    the same local-`visible`-only check D-030 was meant to replace). A
+    diagnostic dump of the dormant jackpot-message template node
+    ("...has won {{text2}} from {{text3}} Jackpot...") confirmed the real
+    shape of the bug: the text node itself (`msgText`) has its own
+    `visible: true`, but its direct parent container (`jpHitCelebrationComp`
+    — this game's `jackpot_info` is always `None`, so this container is
+    never shown) has `visible: False`. Manually AND-ing `visible` down the
+    chain while recursing correctly excludes it, since a node's true
+    on-screen visibility is the AND of its own flag and every ancestor's.
+    The canvas-bounds-intersection check (D-031) is kept alongside this as
+    an extra safety net against off-screen-positioned-but-visible nodes.
+    Ref: GR-28, GR-54 | OBS-09."""
     texts = game_ready.page.evaluate(
         """() => {
             const app = window.__PIXI_APP__;
             if (!app || !app.stage) return [];
             const screen = app.screen || {x: 0, y: 0, width: app.renderer.width, height: app.renderer.height};
             const out = [];
-            (function walk(n) {
+            (function walk(n, inheritedVisible) {
                 if (!n) return;
-                const visible = typeof n.worldVisible === 'boolean' ? n.worldVisible : n.visible;
+                const visible = inheritedVisible && n.visible !== false;
                 if (visible && typeof n.text === 'string' && n.text.length > 0) {
                     let b = null;
                     try { b = n.getBounds(); } catch (e) {}
@@ -148,8 +150,8 @@ def test_no_template_placeholders_visible_anywhere(game_ready):
                         && b.y < screen.y + screen.height && b.y + b.height > screen.y;
                     if (onScreen) out.push(n.text);
                 }
-                if (n.children) for (const c of n.children) walk(c);
-            })(app.stage);
+                if (n.children) for (const c of n.children) walk(c, visible);
+            })(app.stage, true);
             return out;
         }"""
     )
