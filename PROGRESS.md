@@ -254,3 +254,26 @@ Full suite: `pytest --env qa -v`
 One sheet once written: `pytest tests/<dir> --env qa -v` (serial — one shared player
 account, never add `-n`/xdist workers)
 By marker: `pytest --env qa -m "interruption or recovery"` etc.
+
+## CHECKPOINT 5 (2026-10-25): PS-ERR live-validated clean after D-020/D-021 fixes
+First live run of PS-ERR: 6 failed / 8 passed / 6 skipped. Investigated all 4 non-D-019
+failures individually (not just reruns) and found 3 genuine test-code bugs plus one general
+page-object timing bug, all fixed and documented in D-020/D-021:
+- Two tests checked raw PIXI readiness as a proxy for "game failed to load" — wrong signal,
+  since the PIXI renderer boots regardless of init/asset failures. Fixed to check
+  `is_base_game_ready()` instead.
+- One test's `lambda route, s=status: ...` pattern collided with Playwright's handler-arity
+  inspection, silently corrupting the captured status code. Fixed with a factory function.
+- One test's "never respond" route got silently forwarded to the real network when
+  unrouted while still pending, causing a real, unexpected debit. Fixed by aborting it
+  explicitly first.
+- `GamePage.spin()` itself could time out on the second of two immediately-consecutive
+  spins even after a clean, losing, non-feature spin (not just a win, contradicting this
+  project's prior assumption) — added a one-retry fallback, the same pattern already
+  trusted for feature spins.
+
+Re-ran PS-ERR to a clean final result: **12 passed / 2 failed / 6 skipped** — the only 2
+failures are the already-understood, unfixable-from-test-code D-019 cheat-forcing blocker.
+PS-ERR is now considered live-validated and stable.
+
+Next: PS-STR (Transactions/State Integrity, 27 rows) per the original working order.
