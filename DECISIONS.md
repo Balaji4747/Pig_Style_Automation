@@ -602,3 +602,27 @@ trigger it. Worth watching whether this fully explains it or is itself just a wi
 band-aid — if a THIRD consecutive spin still times out even after one retry in some future
 run, escalate to the structural fix already flagged in D-011/D-012 (poll a real per-spin
 completion signal instead of any fixed wait).
+
+## D-022: PS-STR negative-win test had a flawed assertion unrelated to D-019; also noted "FEATURE_MISS" isn't a clickable cheat option in the live panel
+
+First live PS-STR run: 6 failed / 8 passed / 13 skipped. 5 of 6 failures are the known
+D-019 `force_next_spin()` blocker. The 6th,
+`test_spin_response_negative_win_does_not_corrupt_balance`, asserted
+`balance_after_reload <= real_balance_before` on the theory that tampering a spin
+response's `totalWin` to -5 should, at worst, leave the server-side balance unchanged or
+lower. But the underlying spin is a real, unforced one and can legitimately win more than
+its bet — the assertion silently assumed every unforced spin is a net loss, which isn't
+true, and failed on a winning spin that had nothing to do with the tampering under test.
+Fixed: capture the real (pre-tamper) `data.playerInfo.balance` from the genuine response
+inside the route handler itself, and assert the post-reload balance equals that captured
+value exactly, rather than a loose and incorrect inequality.
+
+Separately (not an independent bug, just a detail worth recording): `force_next_spin("FEATURE_MISS")`
+(`test_zero_win_spin_still_closes_the_round`) fails with a click timeout, not the usual
+"expected to trigger a feature" assertion — `"FEATURE_MISS"` is a valid key in
+`assets/panel/cheat.json` (confirmed in `docs/samples/cheat_options.json`) but is NOT
+rendered as a clickable `.cheatDiv` option in the live panel (confirmed via the D-019
+diagnostic's DOM dump — the list goes straight from "UNBEL WIN" to "3 OAK BN" with no
+"FEATURE_MISS" entry in between). Not worth a separate fix: D-019 already means forcing any
+outcome has no effect even when the click succeeds, so this is subsumed by that same
+environment-level finding.

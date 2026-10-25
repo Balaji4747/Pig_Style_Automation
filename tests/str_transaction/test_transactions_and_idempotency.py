@@ -407,13 +407,22 @@ def test_spin_response_negative_win_does_not_corrupt_balance(game_ready, config)
     applied as a negative credit / corrupt the client's own state tracking.
     Ref: GR-56."""
     import re
+    from decimal import Decimal
 
     pattern = re.compile(config["network_patterns"]["spin"])
-    real_balance_before = game_ready.get_init_data().player_info.balance
+
+    # The real spin is an ordinary, unforced one, so it may legitimately win
+    # more than its bet — asserting balance_after <= balance_before (as if
+    # every unforced spin must be a net loss) is wrong and fails on a
+    # winning spin that has nothing to do with the tampering under test.
+    # The real server-computed balance, captured here from the genuine
+    # response BEFORE it's tampered with, is the only correct oracle.
+    real_balance_after = {}
 
     def negative_win(route):
         response = route.fetch()
         body = response.json()
+        real_balance_after["value"] = Decimal(str(body["data"]["playerInfo"]["balance"]))
         body["data"]["result"]["totalWin"] = -5
         route.fulfill(response=response, json=body)
 
@@ -430,7 +439,7 @@ def test_spin_response_negative_win_does_not_corrupt_balance(game_ready, config)
     # that matters — whatever the client displayed for the tampered response
     # is a client-rendering concern, not a balance-correctness one.
     game_ready.reload_and_wait_ready()
-    assert game_ready.get_init_data().player_info.balance <= real_balance_before
+    assert game_ready.get_init_data().player_info.balance == real_balance_after["value"]
 
 
 @pytest.mark.test_case("PS-STR-026")
