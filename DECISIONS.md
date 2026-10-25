@@ -626,3 +626,36 @@ diagnostic's DOM dump — the list goes straight from "UNBEL WIN" to "3 OAK BN" 
 "FEATURE_MISS" entry in between). Not worth a separate fix: D-019 already means forcing any
 outcome has no effect even when the click succeeds, so this is subsumed by that same
 environment-level finding.
+
+## D-023: PS-MTH's two bet-reset cleanup steps failed intermittently with "node not found", even though the node is genuinely present
+
+First live PS-MTH run: 11 failed / 13 passed. 9 of 11 are the D-019 blocker (the 8
+bonus-count parametrizations in `test_free_spins_award_counts.py` plus
+`test_bonus_symbol_never_appears_during_free_spins`). The other 2
+(`test_symbol_win_amount_at_reduced_bet`, `test_symbol_win_amount_at_min_bet_rounding`)
+failed only in their own cleanup step — resetting the bet back to the default
+("1.00") after testing at a reduced bet — with `RuntimeError: No visible PIXI node with
+text '1.00' found`, AFTER their real assertions (win-math oracle match) had already
+passed.
+
+Reproduced the exact "select 0.20, confirm, re-open the bet panel" sequence in a disposable
+diagnostic and dumped every visible text node: "1.00" was present with valid, correctly
+positioned, non-zero bounds — findable by the same walk logic `click_pixi_text()` uses.
+This, combined with the diagnostic succeeding where the real run failed, points to a
+transient timing issue rather than a permanently wrong assumption (unlike D-022's bug):
+most likely the general "stale PIXI nodes pile up over a long session" pattern
+(CLAUDE.md's own long-documented caveat) occasionally delaying or interfering with the bet
+panel's own re-render right after it reopens, worse after many preceding
+`force_next_spin()`-triggered reloads/popups in the same run (the diagnostic ran in
+isolation with much less accumulated state).
+
+Fix: `BetPanel.select_bet()` now retries once after a 1s wait on a `RuntimeError`
+("node not found"), rather than failing immediately — consistent with the project's
+established pattern of tolerating one transient miss rather than either failing outright or
+widening a blind timeout.
+
+**Review**: since the real test assertions had already passed before this cleanup step
+failed, these were never genuine math/product bugs — just a flaky teardown action. Worth
+revisiting if this retry doesn't fully resolve it on the next PS-MTH rerun; if it recurs,
+consider making `BetPanel.select_bet()`'s retry apply to `BetPanel.confirm()` too, or
+re-opening the panel fresh on retry instead of just waiting.
