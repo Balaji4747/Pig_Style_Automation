@@ -424,6 +424,14 @@ class GamePage(BasePage):
 
     def open_bet_panel(self) -> BetPanel:
         self.click_pixi_button(self.BET_BUTTON_NODE)
+        # The bet amount buttons animate in with a per-item stagger (same
+        # pattern as the cheat panel's `--delay`-based entrance) — confirmed
+        # live (D-023 follow-up): clicking a later-positioned amount (e.g.
+        # "1.00", well down the list) immediately after opening can hit it
+        # mid-fade with no bounds yet, while an earlier one (e.g. "0.20")
+        # already succeeds. A fixed settle wait here is simpler and more
+        # reliable than retrying per amount.
+        self.page.wait_for_timeout(1_000)
         return BetPanel(self.page)
 
     def open_buy_feature(self) -> BuyFeaturePanel:

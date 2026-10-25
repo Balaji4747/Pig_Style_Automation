@@ -659,3 +659,35 @@ failed, these were never genuine math/product bugs — just a flaky teardown act
 revisiting if this retry doesn't fully resolve it on the next PS-MTH rerun; if it recurs,
 consider making `BetPanel.select_bet()`'s retry apply to `BetPanel.confirm()` too, or
 re-opening the panel fresh on retry instead of just waiting.
+
+## D-024: D-023's reactive retry did not fix it — the real cause is a missing settle wait after opening the bet panel, which likely animates its items in with a per-item stagger
+
+Re-ran PS-MTH after D-023's one-retry-after-1s fix: identical result, same two failures,
+same exact `RuntimeError: No visible PIXI node with text '1.00' found` — the traceback now
+shows the error coming from the RETRY attempt itself (not just the first try), meaning the
+node was still not found after a full extra second, not just momentarily.
+
+Re-examined the diagnostic from D-023: it opened the bet panel, selected "0.20", confirmed,
+then reopened the panel and dumped every visible node — "1.00" was found there with valid
+bounds. The one real difference from the failing tests: the diagnostic never did a real
+spin (`force_next_spin()` + `spin_and_wait()`) between selecting "0.20" and reopening the
+panel, while both failing tests do. Also relevant: `GamePage.open_bet_panel()` has **no
+settle wait at all** — it clicks the bet button and returns immediately — unlike
+`CheatPanel.open()`, which explicitly waits for its options to render. Combined with this
+project's already-confirmed finding that the cheat panel's options animate in with a
+per-item CSS `--delay` stagger, the likely explanation: the bet panel's own amount buttons
+animate in the same staggered way, and "0.20" (near the top of the list) is already
+rendered by the time a click lands, while "1.00" (several positions further down) can still
+be mid-fade-in with no bounds yet — explaining why the FIRST select (`"0.20"`) in each test
+always succeeds and the SECOND (`"1.00"`, in cleanup) intermittently/consistently doesn't.
+
+Fix: added a fixed 1s settle wait inside `GamePage.open_bet_panel()` itself (covers every
+caller, not just these two tests), rather than relying on `BetPanel.select_bet()`'s reactive
+retry (D-023) to catch it after the fact. Left D-023's retry in place too as a second line
+of defense.
+
+**Review**: this needs a rerun to confirm — if it still fails, the stagger-animation theory
+is wrong and something else is going on (worth dumping the panel's node tree with bounds
+immediately after opening, with zero delay, next time, to directly observe whether "1.00"
+genuinely has zero bounds right after open rather than guessing from the first diagnostic's
+indirect evidence).
