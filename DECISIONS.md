@@ -369,6 +369,39 @@ mocking the 401, so the mock actually lands on a real in-progress round's `/feat
 anything that mocks/inspects `/feature` must first confirm a feature was actually chosen
 and is running, not just triggered.
 
+## D-017: the full root cause — a single unverified click choosing the FS feature, found via a complete clean PS-INT run
+Ran the full 30-case PS-INT suite to completion for the first time (prior runs were all
+stopped early to investigate/fix something) — the actual script-level result was 11
+passed, 16 failed, 3 skipped. Critically, **every one of the 16 failures raised the exact
+same exception**: `playwright._impl._errors.TimeoutError: Timeout 10000ms exceeded while
+waiting for event "response"` — i.e. a plain `spin()`/`spin_and_wait()` call timing out
+waiting for a `/spin` or `/feature` response, the simplest possible symptom of "the game
+isn't responding to Space right now."
+Root cause: `GamePage.choose_free_spins_feature()` fired a single `click_pixi_text(label)`
+with no verification that the click actually registered. Confirmed live that this click
+can silently fail — the choice screen keeps showing, absorbing every subsequent Space
+press, while `unfinishedInfo` reports **nothing pending** (the choice was apparently never
+submitted server-side, so there's nothing for the server to consider "unfinished") and
+`is_base_game_ready()` reports **ready** (`megawaysText` is visible regardless, same
+stale-signal pattern documented throughout this file). This stuck state is therefore
+invisible to BOTH of this project's two usual recovery checks, so `ensure_base_game_ready()`
+never attempts a fix — every subsequent test in the file inherited it and failed the same
+way, not because of anything in that later test's own code.
+This also directly explains essentially every earlier "mystery" failure chased this
+session (D-013 through D-016 included): different symptoms, same underlying cause — a
+feature-choice click with no confirmation it worked, surfacing differently depending on
+exactly when/how a given test happened to interact with the choice screen afterward.
+Fix: `choose_free_spins_feature()` now retries the click in a loop until the choice screen
+actually closes (bounded, 30s default), instead of clicking once and trusting it.
+`resolve_pending_feature()`'s own inline "click STICKY WILDS" step now calls this same
+method instead of duplicating the old, unverified single-click logic.
+**Review**: this is very likely THE fix that was actually needed all along, rather than
+the narrower, symptom-specific fixes in D-013 through D-016 (all of which remain correct
+and worth keeping, they just weren't addressing the real common cause). A full PS-INT
+rerun is the natural next step to confirm the pass rate actually improves — not done yet
+within this session due to time already spent; whoever picks this up next should run it
+before assuming anything else needs fixing.
+
 **Review**: this makes four independent stuck-round incidents across this run (D-005,
 D-009/010/011, D-012, D-013). Each was root-caused and fixed rather than papered over, but
 the pattern itself (new previously-unknown mid-sequence UI states keep surfacing) suggests

@@ -237,10 +237,34 @@ class GamePage(BasePage):
     def is_feature_choice_visible(self) -> bool:
         return self.get_pixi_node_or_none(self.FEATURE_CHOICE_TITLE_NODE) is not None
 
-    def choose_free_spins_feature(self, which: str) -> None:
-        """which: "sticky" or "raining"."""
+    def choose_free_spins_feature(self, which: str, timeout_ms: int = 30_000) -> None:
+        """which: "sticky" or "raining".
+
+        Retries the click until the choice screen actually closes, instead
+        of clicking once and trusting it registered. Confirmed live (25 Oct
+        2026) that a single click here can silently fail to register —
+        every test later in the same run that calls this and moves on
+        immediately then times out on its next spin attempt, because the
+        choice was never actually submitted server-side (the choice screen
+        is still showing, consuming every subsequent Space press) while
+        `unfinishedInfo` reports nothing pending — a stuck state neither of
+        this project's two usual recovery checks (`unfinishedInfo`,
+        `is_base_game_ready()`) can detect, so it was never caught by
+        `ensure_base_game_ready()` either. Retrying the click here, at the
+        source, is more reliable than trying to detect this after the fact
+        everywhere it's used."""
         label = "STICKY WILDS" if which == "sticky" else "RAINING WILDS"
-        self.click_pixi_text(label)
+
+        def choice_screen_closed() -> bool:
+            if self.get_pixi_node_or_none(self.FEATURE_CHOICE_TITLE_NODE) is None:
+                return True
+            try:
+                self.click_pixi_text(label)
+            except RuntimeError:
+                pass
+            return False
+
+        self.wait_for(choice_screen_closed, timeout_ms=timeout_ms, interval_ms=1_000)
 
     def play_feature_spins_to_completion(self, max_spins: int = 30, response_timeout_ms: int = 15_000) -> None:
         """Plays out an active Free Spins round by pressing Space repeatedly
@@ -339,11 +363,11 @@ class GamePage(BasePage):
         even once superseded by a later popup, the same stale-visible-flag
         issue seen elsewhere in this game). Instead each step is attempted
         in sequence and skipped if it doesn't apply to the current state."""
-        try:
-            self.click_pixi_text("STICKY WILDS")
-            self.wait_for(lambda: self.get_pixi_node_or_none(self.FEATURE_CHOICE_TITLE_NODE) is None, timeout_ms=5_000)
-        except (RuntimeError, TimeoutError):
-            pass
+        if self.get_pixi_node_or_none(self.FEATURE_CHOICE_TITLE_NODE) is not None:
+            try:
+                self.choose_free_spins_feature("sticky", timeout_ms=30_000)
+            except TimeoutError:
+                pass
 
         self.dismiss_congrats_popup_if_present()
         self.play_feature_spins_to_completion()
