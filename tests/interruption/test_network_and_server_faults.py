@@ -128,9 +128,23 @@ def test_session_expiration_mid_free_spins_allows_relaunch_recovery(game_ready, 
     in docs/samples/ to mock precisely, so this uses a generic 401 as a
     stand-in and only asserts recoverability, not the client's specific
     in-session error presentation (re-auth prompt wording, etc.) — see
-    DECISIONS.md D-008. Ref: GR-56."""
+    DECISIONS.md D-008.
+
+    Must actually be INSIDE the Free Spins round (not just on the choice
+    screen) before mocking the 401 on `/feature` — confirmed live: the
+    choice screen never calls `/feature` at all (only a chosen, running
+    round does), so a space press there doesn't hit the mocked route and
+    this case silently tested nothing. Ref: GR-56."""
     game_ready.force_next_spin("3 OAK BN")
     game_ready.spin_and_wait_feature_trigger_only()
+    game_ready.wait_for(
+        lambda: game_ready.get_pixi_node_or_none(game_ready.FEATURE_CHOICE_TITLE_NODE) is not None, timeout_ms=15_000
+    )
+    game_ready.choose_free_spins_feature("sticky")
+    game_ready.wait_for(
+        lambda: game_ready.get_pixi_node_or_none(game_ready.FEATURE_CHOICE_TITLE_NODE) is None, timeout_ms=10_000
+    )
+    game_ready.dismiss_congrats_popup_if_present()
 
     pattern = re.compile(config["network_patterns"]["feature"])
 
@@ -139,6 +153,8 @@ def test_session_expiration_mid_free_spins_allows_relaunch_recovery(game_ready, 
 
     game_ready.page.route(pattern, expire_once)
     try:
+        game_ready.wait_for_loading_overlay_to_clear()
+        game_ready.page.wait_for_timeout(5_000)
         game_ready.press_space_bar()
         game_ready.page.wait_for_timeout(3_000)
     finally:

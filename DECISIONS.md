@@ -352,6 +352,23 @@ it can actively disrupt this specific game's own render/transition logic if fire
 a UI transition rather than a settled state. Worth keeping in mind for any future test
 that dispatches it: always wait for a stable state first.
 
+## D-016: PS-INT-017 never actually tested what it claimed — fixed
+A rerun stalled for 30+ minutes with zero progress on
+`test_session_expiration_mid_free_spins_allows_relaunch_recovery`. On inspection, the test
+had a logic bug (not a session-corruption incident this time): it forced a 3-BN trigger,
+immediately mocked a 401 on `/feature`, pressed Space once, then reloaded — but it never
+actually CHOSE a Free Spins feature first. The `/feature` endpoint is only ever called
+once a round is chosen and running; a Space press on the choice screen doesn't hit it at
+all. So the mocked 401 never fired, the test was testing nothing, and the long stall was
+just `reload_and_wait_ready()` draining a completely normal (if slow) Free Spins round
+with no actual fault involved — not a bug, just the already-known cost of a real FS round
+(D-012).
+Fixed: the test now chooses "sticky" and confirms the choice screen has closed before
+mocking the 401, so the mock actually lands on a real in-progress round's `/feature` call.
+**Review**: worth double-checking any other "mid-Free-Spins" test for the same mistake —
+anything that mocks/inspects `/feature` must first confirm a feature was actually chosen
+and is running, not just triggered.
+
 **Review**: this makes four independent stuck-round incidents across this run (D-005,
 D-009/010/011, D-012, D-013). Each was root-caused and fixed rather than papered over, but
 the pattern itself (new previously-unknown mid-sequence UI states keep surfacing) suggests
