@@ -126,6 +126,13 @@ def test_bet_change_immediately_before_spin_uses_new_bet(game_ready, init_data):
     result = game_ready.spin_and_wait()
     assert result.bet == Decimal("2.00")
 
+    # See D-026: resetting the bet is cleanup, not part of this test's
+    # claim (already verified above) — fall back to a reload rather than
+    # failing an otherwise-passed test over the still-unresolved bet-panel
+    # click flakiness (D-023/D-024).
     bet_panel = game_ready.open_bet_panel()
-    bet_panel.select_bet(f"{init_data.player_info.default_bet:.2f}")
-    bet_panel.confirm()
+    try:
+        bet_panel.select_bet(f"{init_data.player_info.default_bet:.2f}")
+        bet_panel.confirm()
+    except RuntimeError:
+        game_ready.reload_and_wait_ready()

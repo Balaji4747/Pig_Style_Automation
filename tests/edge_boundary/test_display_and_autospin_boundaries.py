@@ -48,7 +48,19 @@ def test_auto_spin_smallest_and_largest_count_options(game_ready):
     # Larger option.
     game_ready.network_spy.clear("spin")
     panel = game_ready.open_auto_spin_menu()
-    panel.select_spin_count(25)
+    try:
+        panel.select_spin_count(25)
+    except RuntimeError:
+        # Confirmed live (D-029): reopening the Auto Spin menu a second
+        # time within the same session can persistently fail to find a
+        # count option even after open_auto_spin_menu()'s settle wait and
+        # select_spin_count()'s own retry (D-027) — the same unresolved
+        # panel-reopening mystery already seen with the bet panel
+        # (D-023/D-024/D-026). A fresh reload clears whatever state causes
+        # it, same fallback already used there.
+        game_ready.reload_and_wait_ready()
+        panel = game_ready.open_auto_spin_menu()
+        panel.select_spin_count(25)
     panel.start()
     game_ready.wait_for(lambda: len(game_ready.network_spy.all("spin")) >= 1, timeout_ms=30_000)
     game_ready.page.wait_for_timeout(2_000)

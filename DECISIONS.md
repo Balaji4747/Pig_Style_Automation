@@ -803,3 +803,26 @@ reliably get one spin rejected, that's a meaningful, real confirmation of single
 enforcement worth noting in CLAUDE.md's open items, distinct from the previously
 mocked-only version of this behavior. Not escalating further right now since the test's own
 acceptance criteria already treats this as correct behavior, not a defect.
+
+## D-029: the auto-spin count menu hit the SAME persistent reopening mystery as the bet panel (D-026) — same pragmatic reload fallback applied
+
+Re-ran PS-EDG after D-027's settle-wait fix: `test_auto_spin_smallest_and_largest_count_options`
+still failed, at the exact same spot, with the retry (added in D-027) also failing —
+confirming this isn't just a transient stagger-animation timing issue after all, but the
+same unresolved "a panel reopened a second time within the same session can persistently
+fail to find an option" mystery already logged for the bet panel in D-026. Applied the same
+pragmatic fix: on a `RuntimeError` selecting the larger count, reload and retry once rather
+than continuing to chase the underlying mechanism.
+
+`test_bet_change_immediately_before_spin_uses_new_bet`'s reload-fallback fix (applied to
+match D-026) was made mid-run, after that specific test had already executed and recorded
+its failure in the already-running pytest process — its continued failure in that same run
+is stale, not evidence the fix doesn't work; needs a fresh run to confirm.
+
+**Review**: three independent sightings now (bet panel reset, bet panel initial select in a
+different test, auto-spin menu) of the identical "second open of a panel in the same
+session persistently fails" shape, all worked around the same way (reload fallback) rather
+than root-caused. This is common enough now that it may be worth a dedicated investigation
+pass if it keeps recurring in sheets not yet run (PS-UI, PS-CMP, PS-REG) — likely connects to
+the same general "long-session stale-PIXI-state accumulation" pattern CLAUDE.md already
+documents, just not yet isolated to a specific mechanism.
