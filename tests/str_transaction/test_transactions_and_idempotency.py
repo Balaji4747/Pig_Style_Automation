@@ -9,6 +9,7 @@ pytestmark = pytest.mark.integration
 
 
 @pytest.mark.test_case("PS-STR-001")
+@pytest.mark.test_case("PS-REG-132")
 def test_bet_transaction_is_a_single_debit(game_ready):
     """PS-STR-001: a spin must debit the bet exactly once. Ref: GR-56."""
     balance_before = game_ready.get_init_data().player_info.balance
@@ -18,6 +19,7 @@ def test_bet_transaction_is_a_single_debit(game_ready):
 
 
 @pytest.mark.test_case("PS-STR-002")
+@pytest.mark.test_case("PS-REG-133")
 def test_win_transaction_amount_matches_calculator(game_ready):
     """PS-STR-002: a win's credited amount must match the win-math oracle
     exactly. Ref: GR-56."""
@@ -30,6 +32,7 @@ def test_win_transaction_amount_matches_calculator(game_ready):
 
 
 @pytest.mark.test_case("PS-STR-003")
+@pytest.mark.test_case("PS-REG-134")
 def test_zero_win_spin_still_closes_the_round(game_ready):
     """PS-STR-003: a non-winning spin must still close its round (no
     dangling open round from a zero-win outcome). Ref: GR-56."""
@@ -40,6 +43,7 @@ def test_zero_win_spin_still_closes_the_round(game_ready):
 
 
 @pytest.mark.test_case("PS-STR-004")
+@pytest.mark.test_case("PS-REG-135")
 def test_buy_feature_transaction():
     """PS-STR-004: buying a feature must debit the correct cost exactly
     once. BLOCKED: Buy Feature confirm flow not yet verified — see
@@ -48,6 +52,7 @@ def test_buy_feature_transaction():
 
 
 @pytest.mark.test_case("PS-STR-005")
+@pytest.mark.test_case("PS-REG-136")
 def test_free_spins_transactions_balance_math_is_consistent(game_ready):
     """PS-STR-005: every Free Spins round spin's balance must equal the
     prior balance plus that spin's win (no per-spin debit during FS).
@@ -86,6 +91,7 @@ def test_free_spins_transactions_balance_math_is_consistent(game_ready):
 
 
 @pytest.mark.test_case("PS-STR-006")
+@pytest.mark.test_case("PS-REG-137")
 def test_free_spins_round_lifecycle_shares_one_round_id(game_ready):
     """PS-STR-006: the triggering spin and its whole Free Spins sequence
     must belong to one round lifecycle, not fragment into unrelated rounds.
@@ -113,6 +119,7 @@ def test_free_spins_round_lifecycle_shares_one_round_id(game_ready):
 
 
 @pytest.mark.test_case("PS-STR-007")
+@pytest.mark.test_case("PS-REG-138")
 def test_concurrent_duplicate_spin_requests_do_not_double_process(game_ready, raw_fetch):
     """PS-STR-007: firing two concurrent spin requests must not produce two
     processed rounds for the price of one debit (or any corruption) — spin
@@ -151,6 +158,7 @@ def test_concurrent_duplicate_spin_requests_do_not_double_process(game_ready, ra
 
 
 @pytest.mark.test_case("PS-STR-008")
+@pytest.mark.test_case("PS-REG-139")
 def test_duplicate_credit_prevention():
     """PS-STR-008: a credit must never be applied twice for one round.
 
@@ -164,6 +172,7 @@ def test_duplicate_credit_prevention():
 
 
 @pytest.mark.test_case("PS-STR-009")
+@pytest.mark.test_case("PS-REG-140")
 def test_replay_of_old_round_request():
     """PS-STR-009: replaying an old round's request must not be accepted.
 
@@ -175,6 +184,7 @@ def test_replay_of_old_round_request():
 
 
 @pytest.mark.test_case("PS-STR-010")
+@pytest.mark.test_case("PS-REG-141")
 def test_out_of_order_concurrent_requests_do_not_corrupt_state(game_ready, raw_fetch):
     """PS-STR-010: concurrently-fired requests must resolve to a
     self-consistent final state, not corrupted/out-of-order balance.
@@ -202,6 +212,7 @@ def test_out_of_order_concurrent_requests_do_not_corrupt_state(game_ready, raw_f
 
 
 @pytest.mark.test_case("PS-STR-011")
+@pytest.mark.test_case("PS-REG-142")
 def test_base_spin_request_during_active_free_spins_is_rejected_or_ignored(game_ready, raw_fetch):
     """PS-STR-011: sending a base-game /spin request while a Free Spins
     round is active must be rejected or ignored, never processed as a real
@@ -219,6 +230,7 @@ def test_base_spin_request_during_active_free_spins_is_rejected_or_ignored(game_
 
 
 @pytest.mark.test_case("PS-STR-012")
+@pytest.mark.test_case("PS-REG-143")
 def test_tampered_bet_value():
     """PS-STR-012: a tampered bet value must be rejected. BLOCKED: no
     captured bet-setting request payload (spin requests carry no bet
@@ -227,6 +239,7 @@ def test_tampered_bet_value():
 
 
 @pytest.mark.test_case("PS-STR-013")
+@pytest.mark.test_case("PS-REG-144")
 def test_tampered_bet_above_max():
     """PS-STR-013: a tampered bet above max must be rejected. Same blocker
     as PS-STR-012. Ref: GR-56."""
@@ -234,6 +247,7 @@ def test_tampered_bet_above_max():
 
 
 @pytest.mark.test_case("PS-STR-014")
+@pytest.mark.test_case("PS-REG-145")
 def test_tampered_buy_cost():
     """PS-STR-014: a tampered Buy Feature cost must be rejected. BLOCKED:
     Buy Feature confirm flow not yet verified. Ref: GR-56."""
@@ -241,6 +255,7 @@ def test_tampered_buy_cost():
 
 
 @pytest.mark.test_case("PS-STR-015")
+@pytest.mark.test_case("PS-REG-146")
 def test_tampered_free_spins_choice():
     """PS-STR-015: a tampered Free Spins choice value must be rejected.
     BLOCKED: no captured feature-choice request payload to tamper with (the
@@ -249,6 +264,7 @@ def test_tampered_free_spins_choice():
 
 
 @pytest.mark.test_case("PS-STR-016")
+@pytest.mark.test_case("PS-REG-147")
 def test_bet_change_mid_free_spins_via_api():
     """PS-STR-016: changing the bet mid-Free-Spins via a direct API call
     must be rejected (bet is fixed for the whole feature). BLOCKED: same as
@@ -258,6 +274,7 @@ def test_bet_change_mid_free_spins_via_api():
 
 
 @pytest.mark.test_case("PS-STR-017")
+@pytest.mark.test_case("PS-REG-148")
 def test_invalid_session_token_is_rejected(game_ready, config):
     """PS-STR-017: a request with an invalid/garbage session token must be
     rejected, not treated as a valid session. Ref: GR-56."""
@@ -280,6 +297,7 @@ def test_invalid_session_token_is_rejected(game_ready, config):
 
 
 @pytest.mark.test_case("PS-STR-018")
+@pytest.mark.test_case("PS-REG-149")
 def test_session_cannot_access_another_players_round():
     """PS-STR-018: a session must not be able to access another player's
     round/history. BLOCKED: this environment provides exactly one player
@@ -290,6 +308,7 @@ def test_session_cannot_access_another_players_round():
 
 
 @pytest.mark.test_case("PS-STR-019")
+@pytest.mark.test_case("PS-REG-150")
 def test_reconciliation_of_bet_and_win_totals_across_a_session(game_ready):
     """PS-STR-019 (Partial): across a short sequence of spins, the sum of
     each spin's (win - bet) must equal the net balance change — reconciles
@@ -310,6 +329,7 @@ def test_reconciliation_of_bet_and_win_totals_across_a_session(game_ready):
 
 
 @pytest.mark.test_case("PS-STR-020")
+@pytest.mark.test_case("PS-REG-151")
 def test_reconciliation_history_vs_rgs():
     """PS-STR-020 (Partial): round history must reconcile against the RGS's
     own transaction log. BLOCKED: no player-history/statement endpoint was
@@ -320,6 +340,7 @@ def test_reconciliation_history_vs_rgs():
 
 
 @pytest.mark.test_case("PS-STR-021")
+@pytest.mark.test_case("PS-REG-152")
 def test_balance_consistency_after_errors():
     """PS-STR-021: balance must stay consistent after an error.
 
@@ -334,6 +355,7 @@ def test_balance_consistency_after_errors():
 
 
 @pytest.mark.test_case("PS-STR-022")
+@pytest.mark.test_case("PS-REG-153")
 def test_rng_outcome_is_server_side():
     """PS-STR-022: the RNG outcome must be determined server-side.
     Automation Candidate is "No" in the workbook itself — this requires
@@ -343,6 +365,7 @@ def test_rng_outcome_is_server_side():
 
 
 @pytest.mark.test_case("PS-STR-023")
+@pytest.mark.test_case("PS-REG-154")
 def test_max_win_transaction():
     """PS-STR-023: a max-win transaction must be credited correctly.
     BLOCKED: same as PS-INT-026/PS-ERR-019 — needs a cheat outcome that

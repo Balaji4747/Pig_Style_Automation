@@ -8,6 +8,7 @@ EXPECTED_SPINS = {3: 7, 4: 12, 5: 15, 6: 20}
 
 
 @pytest.mark.test_case("PS-FEA-001")
+@pytest.mark.test_case("PS-REG-058")
 def test_min_trigger_starts_sticky_with_7_spins(game_ready, trigger_and_choose):
     """PS-FEA-001: a 3-BN trigger must start Sticky Wilds Free Spins with 7
     spins. Ref: GR-05, GR-17, M-12."""
@@ -20,6 +21,7 @@ def test_min_trigger_starts_sticky_with_7_spins(game_ready, trigger_and_choose):
 
 
 @pytest.mark.test_case("PS-FEA-002")
+@pytest.mark.test_case("PS-REG-059")
 def test_max_trigger_starts_sticky_with_20_spins(game_ready, trigger_and_choose):
     """PS-FEA-002: a 6-BN trigger must start Sticky Wilds Free Spins with 20
     spins (the max award). Ref: GR-05, GR-17, M-12 | OBS-16."""
@@ -30,6 +32,7 @@ def test_max_trigger_starts_sticky_with_20_spins(game_ready, trigger_and_choose)
 
 
 @pytest.mark.test_case("PS-FEA-003")
+@pytest.mark.test_case("PS-REG-060")
 def test_sticky_completion_credits_total_and_returns_to_base(game_ready, trigger_and_choose, play_one_feature_spin):
     """PS-FEA-003: Sticky Wilds Free Spins must end after the last spin,
     show/credit the total feature win, and return to base game at the
@@ -93,6 +96,7 @@ def test_sticky_zero_win_feature_completes_with_total_zero(game_ready, trigger_a
 
 
 @pytest.mark.test_case("PS-FEA-006")
+@pytest.mark.test_case("PS-REG-061")
 def test_sticky_no_bonus_symbols_or_retrigger(game_ready, trigger_and_choose, play_one_feature_spin):
     """PS-FEA-006: Bonus symbols must never appear, and the feature must
     never retrigger, during Sticky Wilds Free Spins. Ref: GR-18, M-08."""
@@ -107,6 +111,7 @@ def test_sticky_no_bonus_symbols_or_retrigger(game_ready, trigger_and_choose, pl
 
 
 @pytest.mark.test_case("PS-FEA-007")
+@pytest.mark.test_case("PS-REG-062")
 def test_sticky_plays_at_trigger_bet_with_no_per_spin_debit(game_ready, trigger_and_choose, play_one_feature_spin):
     """PS-FEA-007: Sticky Wilds Free Spins must play at the triggering bet
     with no per-spin debit (only credits, if any). Triggered at max bet per
@@ -135,6 +140,7 @@ def test_sticky_plays_at_trigger_bet_with_no_per_spin_debit(game_ready, trigger_
 
 
 @pytest.mark.test_case("PS-FEA-008")
+@pytest.mark.test_case("PS-REG-063")
 def test_sticky_total_win_meter_accumulates(game_ready, trigger_and_choose, play_one_feature_spin):
     """PS-FEA-008: the total win meter must accumulate each spin's win
     during Sticky Wilds Free Spins, matching the running sum exactly.
@@ -155,6 +161,7 @@ def test_sticky_total_win_meter_accumulates(game_ready, trigger_and_choose, play
 
 
 @pytest.mark.test_case("PS-FEA-009")
+@pytest.mark.test_case("PS-REG-064")
 def test_sticky_winnings_credited_only_at_feature_end(game_ready, trigger_and_choose, play_one_feature_spin):
     """PS-FEA-009 (P0): per-spin balance during the feature must only ever
     reflect that spin's own win (never a separate "pending until end"
@@ -177,6 +184,7 @@ def test_sticky_winnings_credited_only_at_feature_end(game_ready, trigger_and_ch
 
 
 @pytest.mark.test_case("PS-FEA-010")
+@pytest.mark.test_case("PS-REG-065")
 def test_sticky_refresh_mid_feature_resumes_with_state(game_ready, trigger_and_choose, play_one_feature_spin):
     """PS-FEA-010: refreshing mid-Sticky-Wilds-feature must resume with the
     same remaining spins/total win preserved (checked via server-side
@@ -195,6 +203,7 @@ def test_sticky_refresh_mid_feature_resumes_with_state(game_ready, trigger_and_c
 
 
 @pytest.mark.test_case("PS-FEA-011")
+@pytest.mark.test_case("PS-REG-066")
 def test_sticky_refresh_during_spin_restores_result_once(game_ready, trigger_and_choose):
     """PS-FEA-011: refreshing while a Sticky Wilds spin is animating must
     restore the already-determined result exactly once (no replay, no
@@ -212,6 +221,7 @@ def test_sticky_refresh_during_spin_restores_result_once(game_ready, trigger_and
 
 
 @pytest.mark.test_case("PS-FEA-012")
+@pytest.mark.test_case("PS-REG-067")
 def test_sticky_max_win_cap_ends_feature_immediately():
     """PS-FEA-012: reaching the max win cap during Sticky Wilds Free Spins
     must end the feature immediately. BLOCKED: same as PS-INT-026/

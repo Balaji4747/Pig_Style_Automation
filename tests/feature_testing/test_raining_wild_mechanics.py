@@ -4,6 +4,7 @@ pytestmark = [pytest.mark.functional, pytest.mark.regression]
 
 
 @pytest.mark.test_case("PS-FEA-035")
+@pytest.mark.test_case("PS-REG-081")
 def test_raining_wild_count_per_spin_is_0_to_6(game_ready, trigger_and_choose, play_one_feature_spin):
     """PS-FEA-035: between 0 and 6 Raining Wilds may appear on any single
     Free Spin, never more. Ref: GR-10, M-11."""
@@ -18,6 +19,7 @@ def test_raining_wild_count_per_spin_is_0_to_6(game_ready, trigger_and_choose, p
 
 
 @pytest.mark.test_case("PS-FEA-036")
+@pytest.mark.test_case("PS-REG-082")
 def test_raining_wilds_do_not_persist_to_next_spin(game_ready, trigger_and_choose, play_one_feature_spin):
     """PS-FEA-036: Raining Wilds must NOT persist — each spin's wild
     positions must be independent of the previous spin's (unlike Sticky
@@ -50,6 +52,7 @@ def test_raining_wilds_do_not_persist_to_next_spin(game_ready, trigger_and_choos
 
 
 @pytest.mark.test_case("PS-FEA-037")
+@pytest.mark.test_case("PS-REG-083")
 def test_raining_wild_multiplier_values_within_spec(game_ready, trigger_and_choose, play_one_feature_spin):
     """PS-FEA-037: each Raining Wild's multiplier must be one of the
     documented values (x1/x2/x3 per the math file — SPEC QUESTION: rules

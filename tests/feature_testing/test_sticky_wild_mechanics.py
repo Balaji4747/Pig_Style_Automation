@@ -11,6 +11,7 @@ pytestmark = [pytest.mark.functional, pytest.mark.regression]
 
 
 @pytest.mark.test_case("PS-FEA-025")
+@pytest.mark.test_case("PS-REG-078")
 def test_sticky_wild_persists_across_remaining_spins(game_ready, trigger_and_choose, play_one_feature_spin):
     """PS-FEA-025: once a Sticky Wild lands, it must remain on its reel for
     all remaining Free Spins (its positions only grow or stay the same,
@@ -42,6 +43,8 @@ def test_sticky_wild_persists_across_remaining_spins(game_ready, trigger_and_cho
 
 @pytest.mark.test_case("PS-FEA-026")
 @pytest.mark.test_case("PS-FEA-027")
+@pytest.mark.test_case("PS-REG-079")
+@pytest.mark.test_case("PS-REG-080")
 def test_sticky_wild_multiplier_values_are_within_spec(game_ready, trigger_and_choose, play_one_feature_spin):
     """PS-FEA-026/027: each Sticky Wild's multiplier must be one of the
     documented values (x1, x2, or x3 per the math file — SPEC QUESTION:

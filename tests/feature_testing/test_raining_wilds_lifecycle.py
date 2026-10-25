@@ -6,6 +6,7 @@ pytestmark = [pytest.mark.functional, pytest.mark.regression]
 
 
 @pytest.mark.test_case("PS-FEA-013")
+@pytest.mark.test_case("PS-REG-068")
 def test_min_trigger_starts_raining_with_15_spins(game_ready, trigger_and_choose):
     """PS-FEA-013: a 3-BN trigger must start Raining Wilds Free Spins with
     15 spins. Ref: GR-09, GR-17, M-11."""
@@ -16,6 +17,7 @@ def test_min_trigger_starts_raining_with_15_spins(game_ready, trigger_and_choose
 
 
 @pytest.mark.test_case("PS-FEA-014")
+@pytest.mark.test_case("PS-REG-069")
 def test_max_trigger_starts_raining_with_30_spins(game_ready, trigger_and_choose):
     """PS-FEA-014: a 6-BN trigger must start Raining Wilds Free Spins with
     30 spins (the max award). Ref: GR-09, GR-17, M-11 | OBS-16."""
@@ -26,6 +28,7 @@ def test_max_trigger_starts_raining_with_30_spins(game_ready, trigger_and_choose
 
 
 @pytest.mark.test_case("PS-FEA-015")
+@pytest.mark.test_case("PS-REG-070")
 def test_raining_completion_credits_total_and_returns_to_base(game_ready, trigger_and_choose, play_one_feature_spin):
     """PS-FEA-015: Raining Wilds Free Spins must end after the last spin,
     show/credit the total feature win, and return to base game at the
@@ -84,6 +87,7 @@ def test_raining_zero_win_feature_completes_with_total_zero(game_ready, trigger_
 
 
 @pytest.mark.test_case("PS-FEA-018")
+@pytest.mark.test_case("PS-REG-071")
 def test_raining_no_bonus_symbols_or_retrigger(game_ready, trigger_and_choose, play_one_feature_spin):
     """PS-FEA-018: Bonus symbols must never appear, and the feature must
     never retrigger, during Raining Wilds Free Spins. Ref: GR-18, M-08."""
@@ -98,6 +102,7 @@ def test_raining_no_bonus_symbols_or_retrigger(game_ready, trigger_and_choose, p
 
 
 @pytest.mark.test_case("PS-FEA-019")
+@pytest.mark.test_case("PS-REG-072")
 def test_raining_plays_at_trigger_bet_with_no_per_spin_debit(game_ready, trigger_and_choose, play_one_feature_spin):
     """PS-FEA-019: Raining Wilds Free Spins must play at the triggering bet
     with no per-spin debit, triggered at max bet per the workbook.
@@ -126,6 +131,7 @@ def test_raining_plays_at_trigger_bet_with_no_per_spin_debit(game_ready, trigger
 
 
 @pytest.mark.test_case("PS-FEA-020")
+@pytest.mark.test_case("PS-REG-073")
 def test_raining_total_win_meter_accumulates(game_ready, trigger_and_choose, play_one_feature_spin):
     """PS-FEA-020: the total win meter must accumulate each spin's win
     during Raining Wilds Free Spins. Ref: GR-12."""
@@ -142,6 +148,7 @@ def test_raining_total_win_meter_accumulates(game_ready, trigger_and_choose, pla
 
 
 @pytest.mark.test_case("PS-FEA-021")
+@pytest.mark.test_case("PS-REG-074")
 def test_raining_winnings_credited_only_at_feature_end(game_ready, trigger_and_choose, play_one_feature_spin):
     """PS-FEA-021 (P0): per-spin balance must only ever reflect that spin's
     own win. Ref: GR-12 | OBS-08 (rules only state this explicitly for
@@ -160,6 +167,7 @@ def test_raining_winnings_credited_only_at_feature_end(game_ready, trigger_and_c
 
 
 @pytest.mark.test_case("PS-FEA-022")
+@pytest.mark.test_case("PS-REG-075")
 def test_raining_refresh_mid_feature_resumes_with_state(game_ready, trigger_and_choose, play_one_feature_spin):
     """PS-FEA-022: refreshing mid-Raining-Wilds must resume with the same
     remaining spins/total win preserved (checked via unfinishedInfo and
@@ -176,6 +184,7 @@ def test_raining_refresh_mid_feature_resumes_with_state(game_ready, trigger_and_
 
 
 @pytest.mark.test_case("PS-FEA-023")
+@pytest.mark.test_case("PS-REG-076")
 def test_raining_refresh_during_spin_restores_result_once(game_ready, trigger_and_choose):
     """PS-FEA-023: refreshing while a Raining Wilds spin is animating must
     restore the already-determined result exactly once. Ref: GR-56."""
@@ -192,6 +201,7 @@ def test_raining_refresh_during_spin_restores_result_once(game_ready, trigger_an
 
 
 @pytest.mark.test_case("PS-FEA-024")
+@pytest.mark.test_case("PS-REG-077")
 def test_raining_max_win_cap_ends_feature_immediately():
     """PS-FEA-024: reaching the max win cap during Raining Wilds Free Spins
     must end the feature immediately. BLOCKED: same cap-trigger limitation

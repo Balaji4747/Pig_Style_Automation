@@ -14,14 +14,22 @@ EXPECTED_AWARDS = {
 }
 
 CASES = [
-    pytest.param(3, "sticky", id="PS-MTH-038-3BN-sticky", marks=pytest.mark.test_case("PS-MTH-038")),
+    pytest.param(
+        3, "sticky", id="PS-MTH-038-3BN-sticky", marks=[pytest.mark.test_case("PS-MTH-038"), pytest.mark.test_case("PS-REG-052")]
+    ),
     pytest.param(4, "sticky", id="PS-MTH-039-4BN-sticky", marks=pytest.mark.test_case("PS-MTH-039")),
     pytest.param(5, "sticky", id="PS-MTH-040-5BN-sticky", marks=pytest.mark.test_case("PS-MTH-040")),
-    pytest.param(6, "sticky", id="PS-MTH-041-6BN-sticky", marks=pytest.mark.test_case("PS-MTH-041")),
-    pytest.param(3, "raining", id="PS-MTH-042-3BN-raining", marks=pytest.mark.test_case("PS-MTH-042")),
+    pytest.param(
+        6, "sticky", id="PS-MTH-041-6BN-sticky", marks=[pytest.mark.test_case("PS-MTH-041"), pytest.mark.test_case("PS-REG-053")]
+    ),
+    pytest.param(
+        3, "raining", id="PS-MTH-042-3BN-raining", marks=[pytest.mark.test_case("PS-MTH-042"), pytest.mark.test_case("PS-REG-054")]
+    ),
     pytest.param(4, "raining", id="PS-MTH-043-4BN-raining", marks=pytest.mark.test_case("PS-MTH-043")),
     pytest.param(5, "raining", id="PS-MTH-044-5BN-raining", marks=pytest.mark.test_case("PS-MTH-044")),
-    pytest.param(6, "raining", id="PS-MTH-045-6BN-raining", marks=pytest.mark.test_case("PS-MTH-045")),
+    pytest.param(
+        6, "raining", id="PS-MTH-045-6BN-raining", marks=[pytest.mark.test_case("PS-MTH-045"), pytest.mark.test_case("PS-REG-055")]
+    ),
 ]
 
 

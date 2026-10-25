@@ -18,10 +18,22 @@ from utils.megaways_calculator import evaluate, total_win
 # cheat options — the calculator's validation already covers the intent
 # (the win formula holds for whatever board actually results).
 SYMBOL_CASES = [
-    pytest.param("6 OAK AA", id="PS-MTH-017-AA-6OAK", marks=pytest.mark.test_case("PS-MTH-017")),
-    pytest.param("5 OAK BB ", id="PS-MTH-018-BB-5OAK", marks=pytest.mark.test_case("PS-MTH-018")),
+    pytest.param(
+        "6 OAK AA",
+        id="PS-MTH-017-AA-6OAK",
+        marks=[pytest.mark.test_case("PS-MTH-017"), pytest.mark.test_case("PS-REG-042")],
+    ),
+    pytest.param(
+        "5 OAK BB ",
+        id="PS-MTH-018-BB-5OAK",
+        marks=[pytest.mark.test_case("PS-MTH-018"), pytest.mark.test_case("PS-REG-043")],
+    ),
     pytest.param("4 OAK CC ", id="PS-MTH-019-CC-4OAK", marks=pytest.mark.test_case("PS-MTH-019")),
-    pytest.param("3 OAK DD ", id="PS-MTH-020-DD-3OAK", marks=pytest.mark.test_case("PS-MTH-020")),
+    pytest.param(
+        "3 OAK DD ",
+        id="PS-MTH-020-DD-3OAK",
+        marks=[pytest.mark.test_case("PS-MTH-020"), pytest.mark.test_case("PS-REG-044")],
+    ),
     pytest.param("6 OAK EE ", id="PS-MTH-021-EE-6OAK", marks=pytest.mark.test_case("PS-MTH-021")),
     pytest.param("4 OAK FF ", id="PS-MTH-022-FF-4OAK", marks=pytest.mark.test_case("PS-MTH-022")),
     pytest.param("5 OAK GG ", id="PS-MTH-023-GG-5OAK", marks=pytest.mark.test_case("PS-MTH-023")),

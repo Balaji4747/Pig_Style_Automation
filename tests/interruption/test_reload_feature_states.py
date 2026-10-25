@@ -26,6 +26,7 @@ def test_reload_of_unfinished_free_spins_resumes(game_ready):
 @pytest.mark.recovery
 @pytest.mark.test_case("PS-INT-023")
 @pytest.mark.test_case("PS-EDG-029")
+@pytest.mark.test_case("PS-REG-125")
 def test_reload_immediately_after_feature_trigger_shows_choice_screen(game_ready):
     """PS-INT-023: reloading in the instant right after a feature-triggering
     spin's response arrives — before the client has even rendered the
@@ -57,6 +58,7 @@ def test_reload_immediately_after_feature_trigger_shows_choice_screen(game_ready
 @pytest.mark.interruption
 @pytest.mark.recovery
 @pytest.mark.test_case("PS-INT-024")
+@pytest.mark.test_case("PS-REG-126")
 def test_reload_during_sticky_free_spins_preserves_unfinished_state(game_ready):
     """PS-INT-024 (Partial): reloading mid-Sticky-Wilds Free Spins must
     preserve the in-progress round. The cheat tool has no option to force an
@@ -97,6 +99,7 @@ def test_reload_during_sticky_free_spins_preserves_unfinished_state(game_ready):
 @pytest.mark.interruption
 @pytest.mark.recovery
 @pytest.mark.test_case("PS-INT-025")
+@pytest.mark.test_case("PS-REG-127")
 def test_reload_during_raining_free_spins_restores_result_once(game_ready):
     """PS-INT-025: reloading mid-drop during a Raining Wilds Free Spins
     round must restore the round's result exactly once (no duplicate
@@ -129,6 +132,7 @@ def test_reload_during_raining_free_spins_restores_result_once(game_ready):
 @pytest.mark.interruption
 @pytest.mark.recovery
 @pytest.mark.test_case("PS-INT-026")
+@pytest.mark.test_case("PS-REG-128")
 def test_reload_during_max_win_credits_cap_once():
     """PS-INT-026: reloading on the max-win popup must credit the capped
     amount exactly once.
@@ -175,6 +179,7 @@ def test_reload_during_auto_spin_behavior_is_observed_and_reported(game_ready):
 @pytest.mark.interruption
 @pytest.mark.recovery
 @pytest.mark.test_case("PS-INT-028")
+@pytest.mark.test_case("PS-REG-129")
 def test_hard_context_close_during_free_spins_resumes(game_ready, open_game_page_in):
     """PS-INT-028 (Partial): approximates a browser crash by hard-closing
     the entire browser context (not just the page) mid-Free-Spins, then

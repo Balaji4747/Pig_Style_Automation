@@ -15,6 +15,7 @@ from utils.api_client import parse_spin_response
 @pytest.mark.interruption
 @pytest.mark.recovery
 @pytest.mark.test_case("PS-INT-012")
+@pytest.mark.test_case("PS-REG-118")
 def test_app_background_signal_during_spin_still_completes(game_ready):
     """PS-INT-012 (Partial): simulates "app backgrounded mid-spin" via a
     `visibilitychange` event (the real signal the game receives in that
@@ -42,6 +43,7 @@ def test_app_background_signal_during_spin_still_completes(game_ready):
 @pytest.mark.interruption
 @pytest.mark.recovery
 @pytest.mark.test_case("PS-INT-013")
+@pytest.mark.test_case("PS-REG-119")
 def test_app_background_signal_during_free_spins_resumes(game_ready):
     """PS-INT-013 (Partial): same `visibilitychange` approximation as
     PS-INT-012, applied mid-Free-Spins — the feature must still be

@@ -4,6 +4,7 @@ pytestmark = pytest.mark.negative
 
 
 @pytest.mark.test_case("PS-ERR-001")
+@pytest.mark.test_case("PS-REG-155")
 def test_insufficient_balance_on_spin_makes_no_debit(game_ready, mock_spin_failure):
     """PS-ERR-001: attempting to spin with insufficient balance must show an
     error and make no debit.
@@ -30,6 +31,7 @@ def test_insufficient_balance_on_spin_makes_no_debit(game_ready, mock_spin_failu
 
 
 @pytest.mark.test_case("PS-ERR-002")
+@pytest.mark.test_case("PS-REG-156")
 def test_insufficient_balance_on_buy_makes_no_debit():
     """PS-ERR-002: attempting to Buy Feature with insufficient balance must
     show an error and make no debit.
@@ -43,6 +45,7 @@ def test_insufficient_balance_on_buy_makes_no_debit():
 
 @pytest.mark.test_case("PS-ERR-003")
 @pytest.mark.test_case("PS-EDG-030")
+@pytest.mark.test_case("PS-REG-157")
 def test_session_expired_on_spin_shows_error_and_allows_relaunch(game_ready, mock_spin_failure):
     """PS-ERR-003: a spin attempt with an expired session must show a
     session-expired message and offer a reload/relaunch path.

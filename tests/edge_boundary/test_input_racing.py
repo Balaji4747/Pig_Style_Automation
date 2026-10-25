@@ -9,6 +9,7 @@ pytestmark = pytest.mark.boundary
 
 
 @pytest.mark.test_case("PS-EDG-019")
+@pytest.mark.test_case("PS-REG-103")
 def test_spam_clicking_play_starts_only_sequential_rounds(game_ready):
     """PS-EDG-019: spam-pressing Play for 3s must start only sequential
     rounds (no overlapping/duplicate requests), each debited once.

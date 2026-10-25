@@ -6,6 +6,7 @@ pytestmark = [pytest.mark.functional, pytest.mark.regression, pytest.mark.recove
 
 
 @pytest.mark.test_case("PS-FEA-054")
+@pytest.mark.test_case("PS-REG-094")
 def test_close_browser_mid_fs_and_relaunch_restores_feature(game_ready, open_game_page_in, trigger_and_choose):
     """PS-FEA-054: closing the browser mid-Free-Spins and relaunching must
     restore the feature. Ref: GR-56."""
@@ -33,6 +34,7 @@ def test_unfinished_feature_resumes_on_another_device():
 
 
 @pytest.mark.test_case("PS-FEA-056")
+@pytest.mark.test_case("PS-REG-095")
 def test_unfinished_feature_after_7_days_inactivity():
     """PS-FEA-056 (P0): behaviour after 7+ days of inactivity. Not
     automated — the workbook marks this "No" itself, and for good reason:
@@ -56,6 +58,7 @@ def test_unfinished_feature_restored_before_7_days():
 
 
 @pytest.mark.test_case("PS-FEA-058")
+@pytest.mark.test_case("PS-REG-096")
 def test_network_drop_during_fs_spin_request_recovers_without_spin_loss(game_ready, trigger_and_choose):
     """PS-FEA-058: a network drop during an FS spin request must be
     recovered without losing that spin (reconnect, result displayed once,
@@ -78,6 +81,7 @@ def test_network_drop_during_fs_spin_request_recovers_without_spin_loss(game_rea
 
 
 @pytest.mark.test_case("PS-FEA-059")
+@pytest.mark.test_case("PS-REG-097")
 def test_refresh_on_fs_summary_screen_does_not_credit_twice(game_ready, trigger_and_choose, play_one_feature_spin):
     """PS-FEA-059: refreshing on the Free Spins summary screen must not
     credit the total twice. Plays the round to completion (so the summary

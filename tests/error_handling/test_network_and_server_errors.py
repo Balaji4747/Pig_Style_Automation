@@ -25,6 +25,7 @@ def test_offline_spin_shows_connection_lost_and_makes_no_debit(game_ready):
 
 
 @pytest.mark.test_case("PS-ERR-006")
+@pytest.mark.test_case("PS-REG-158")
 def test_server_500_on_spin_shows_generic_error_and_is_recoverable(game_ready, mock_spin_failure):
     """PS-ERR-006: a 500 on spin must show a generic error with a code and
     remain recoverable. Ref: GR-56."""
@@ -60,6 +61,7 @@ def test_server_503_at_launch_shows_maintenance_message(context, config):
 
 
 @pytest.mark.test_case("PS-ERR-011")
+@pytest.mark.test_case("PS-REG-159")
 def test_spin_timeout_shows_message_and_recovers(game_ready, config):
     """PS-ERR-011: a spin request that never responds in time must show a
     timeout message and remain recoverable afterward. Ref: GR-56."""
@@ -83,6 +85,7 @@ def test_spin_timeout_shows_message_and_recovers(game_ready, config):
 
 
 @pytest.mark.test_case("PS-ERR-012")
+@pytest.mark.test_case("PS-REG-160")
 def test_engine_error_on_spin_makes_no_debit_or_rollback_needed(game_ready, mock_spin_failure):
     """PS-ERR-012: an RNG/engine error on spin must make no debit (so no
     rollback is needed) and show an error message. Ref: GR-56."""
@@ -95,6 +98,7 @@ def test_engine_error_on_spin_makes_no_debit_or_rollback_needed(game_ready, mock
 
 
 @pytest.mark.test_case("PS-ERR-013")
+@pytest.mark.test_case("PS-REG-161")
 def test_wallet_debit_rejection_plays_no_round(game_ready, mock_spin_failure):
     """PS-ERR-013: if the wallet rejects the debit outright, no round must
     be shown (modeled the same way as PS-INT-019/PS-ERR-006, since this
@@ -127,6 +131,7 @@ def test_malformed_spin_response_does_not_crash_client(game_ready, mock_spin_fai
 
 
 @pytest.mark.test_case("PS-ERR-018")
+@pytest.mark.test_case("PS-REG-162")
 def test_recovery_after_consecutive_errors_has_correct_state_and_no_duplicates(game_ready, mock_spin_failure):
     """PS-ERR-018: after an error, reloading must show the correct balance
     and state with no duplicates — checked across two consecutive mocked

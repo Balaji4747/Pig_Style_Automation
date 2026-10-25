@@ -19,6 +19,7 @@ from utils.api_client import parse_spin_response
 @pytest.mark.interruption
 @pytest.mark.recovery
 @pytest.mark.test_case("PS-INT-008")
+@pytest.mark.test_case("PS-REG-115")
 def test_network_loss_before_spin_request_makes_no_debit(game_ready):
     """PS-INT-008: going offline and then attempting to spin must produce no
     request/debit, and the game must be fully usable again once connectivity
@@ -41,6 +42,7 @@ def test_network_loss_before_spin_request_makes_no_debit(game_ready):
 @pytest.mark.recovery
 @pytest.mark.test_case("PS-INT-009")
 @pytest.mark.test_case("PS-EDG-033")
+@pytest.mark.test_case("PS-REG-116")
 def test_network_loss_after_spin_request_sent_recovers_without_duplication(game_ready, config):
     """PS-INT-009: if the spin request reaches the server but the response
     never arrives (connection drop in flight), the post-recovery state
@@ -71,6 +73,7 @@ def test_network_loss_after_spin_request_sent_recovers_without_duplication(game_
 @pytest.mark.interruption
 @pytest.mark.recovery
 @pytest.mark.test_case("PS-INT-010")
+@pytest.mark.test_case("PS-REG-117")
 def test_network_loss_during_free_spins_continues_from_server_state(game_ready):
     """PS-INT-010: a connectivity drop mid-Free-Spins must not corrupt or
     abandon the round — after connectivity returns and the page reloads,
@@ -115,6 +118,7 @@ def test_long_network_outage_is_recoverable_on_relaunch(game_ready):
 @pytest.mark.negative
 @pytest.mark.test_case("PS-INT-017")
 @pytest.mark.test_case("PS-EDG-031")
+@pytest.mark.test_case("PS-REG-120")
 def test_session_expiration_mid_free_spins_allows_relaunch_recovery(game_ready, config):
     """PS-INT-017: an auth/session failure mid-Free-Spins must not strand
     the session — regardless of what the client shows for the mocked
@@ -149,6 +153,7 @@ def test_session_expiration_mid_free_spins_allows_relaunch_recovery(game_ready, 
 @pytest.mark.recovery
 @pytest.mark.negative
 @pytest.mark.test_case("PS-INT-018")
+@pytest.mark.test_case("PS-REG-121")
 def test_wallet_credit_failure_after_win():
     """PS-INT-018: a win must never be lost if the wallet credit step fails.
 
@@ -168,6 +173,7 @@ def test_wallet_credit_failure_after_win():
 @pytest.mark.recovery
 @pytest.mark.negative
 @pytest.mark.test_case("PS-INT-019")
+@pytest.mark.test_case("PS-REG-122")
 def test_wallet_debit_failure_on_spin_plays_no_round(game_ready, config):
     """PS-INT-019: if the spin request cannot be processed at all (modeled
     here the same way as PS-INT-021's server error, since this game has no
@@ -197,6 +203,7 @@ def test_wallet_debit_failure_on_spin_plays_no_round(game_ready, config):
 @pytest.mark.negative
 @pytest.mark.test_case("PS-INT-020")
 @pytest.mark.test_case("PS-EDG-032")
+@pytest.mark.test_case("PS-REG-123")
 def test_slow_spin_response_does_not_double_process(game_ready, config):
     """PS-INT-020: an abnormally slow spin response (beyond a normal
     round-trip, here an artificial 6s add-on) must not cause state
@@ -225,6 +232,7 @@ def test_slow_spin_response_does_not_double_process(game_ready, config):
 @pytest.mark.recovery
 @pytest.mark.negative
 @pytest.mark.test_case("PS-INT-021")
+@pytest.mark.test_case("PS-REG-124")
 def test_server_error_on_spin_makes_no_debit_and_is_recoverable(game_ready, config):
     """PS-INT-021: a server error on a spin request must show no debit (no
     rollback needed because nothing was ever applied) and the game must

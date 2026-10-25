@@ -27,6 +27,7 @@ def test_max_bet_exact_balance_spin():
 
 
 @pytest.mark.test_case("PS-EDG-003")
+@pytest.mark.test_case("PS-REG-098")
 def test_balance_one_cent_below_bet_blocks_spin():
     """BLOCKED: same balance-precondition limitation as PS-EDG-001; the
     client-reaction equivalent (mocked insufficient-funds response) is
@@ -35,6 +36,7 @@ def test_balance_one_cent_below_bet_blocks_spin():
 
 
 @pytest.mark.test_case("PS-EDG-004")
+@pytest.mark.test_case("PS-REG-099")
 def test_zero_balance_on_launch():
     """BLOCKED: same balance-precondition limitation. Ref: GR-46."""
     pytest.skip("Blocked: session balance can't be set to zero in this environment")
@@ -48,6 +50,7 @@ def test_lower_bet_to_continue_when_below_current_bet():
 
 
 @pytest.mark.test_case("PS-EDG-006")
+@pytest.mark.test_case("PS-REG-100")
 def test_buy_accepted_at_exact_100x_bet_balance():
     """BLOCKED: Buy Feature confirm flow not yet verified (see
     PS-FUN-059/061/062), compounded by the same unreachable exact-balance
@@ -72,6 +75,7 @@ def test_buy_cost_at_max_bet_displays_fully():
 
 
 @pytest.mark.test_case("PS-EDG-010")
+@pytest.mark.test_case("PS-REG-101")
 def test_win_equal_to_cap_paid_in_full():
     """BLOCKED: needs a cheat outcome that reliably triggers maxCapReached,
     not confirmed available (same blocker as PS-INT-026/PS-ERR-019/
@@ -80,6 +84,7 @@ def test_win_equal_to_cap_paid_in_full():
 
 
 @pytest.mark.test_case("PS-EDG-011")
+@pytest.mark.test_case("PS-REG-102")
 def test_win_above_cap_truncated_to_cap():
     """BLOCKED: same cap-trigger limitation as PS-EDG-010. Ref: GR-29 |
     OBS-09."""

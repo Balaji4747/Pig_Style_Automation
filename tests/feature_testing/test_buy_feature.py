@@ -13,6 +13,7 @@ pytestmark = [pytest.mark.functional, pytest.mark.regression]
 
 
 @pytest.mark.test_case("PS-FEA-048")
+@pytest.mark.test_case("PS-REG-090")
 def test_fs_type_awarded_for_bought_feature():
     """BLOCKED: Buy confirm flow unverified. Ref: GR-32, M-15, M-16 | OBS-10
     (workbook itself also flags whether FS type is chosen in the Buy
@@ -21,18 +22,21 @@ def test_fs_type_awarded_for_bought_feature():
 
 
 @pytest.mark.test_case("PS-FEA-049")
+@pytest.mark.test_case("PS-REG-091")
 def test_bought_feature_always_lands_at_least_3_bn():
     """BLOCKED: Buy confirm flow unverified. Ref: GR-33, M-15, M-16."""
     pytest.skip("Blocked: Buy Feature confirm flow (endpoint/payload) not yet verified")
 
 
 @pytest.mark.test_case("PS-FEA-050")
+@pytest.mark.test_case("PS-REG-092")
 def test_double_confirm_debits_only_once():
     """BLOCKED: Buy confirm flow unverified. Ref: GR-33."""
     pytest.skip("Blocked: Buy Feature confirm flow (endpoint/payload) not yet verified")
 
 
 @pytest.mark.test_case("PS-FEA-051")
+@pytest.mark.test_case("PS-REG-093")
 def test_refresh_immediately_after_buy_confirm_recovers_feature():
     """BLOCKED: Buy confirm flow unverified (same as PS-INT-005).
     Ref: GR-33, GR-56."""

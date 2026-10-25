@@ -8,6 +8,7 @@ pytestmark = [pytest.mark.functional, pytest.mark.regression]
 
 
 @pytest.mark.test_case("PS-FEA-041")
+@pytest.mark.test_case("PS-REG-084")
 def test_choosing_sticky_starts_sticky_fs_with_correct_count(game_ready):
     """PS-FEA-041: choosing Sticky Wilds after a 4-BN trigger must start
     Sticky Wilds Free Spins with 12 spins. Ref: GR-16, GR-05."""
@@ -28,6 +29,7 @@ def test_choosing_sticky_starts_sticky_fs_with_correct_count(game_ready):
 
 
 @pytest.mark.test_case("PS-FEA-042")
+@pytest.mark.test_case("PS-REG-085")
 def test_choosing_raining_starts_raining_fs_with_correct_count(game_ready):
     """PS-FEA-042: choosing Raining Wilds after a 4-BN trigger must start
     Raining Wilds Free Spins with 18 spins. Ref: GR-16, GR-09."""
@@ -48,6 +50,7 @@ def test_choosing_raining_starts_raining_fs_with_correct_count(game_ready):
 
 
 @pytest.mark.test_case("PS-FEA-043")
+@pytest.mark.test_case("PS-REG-086")
 def test_rapid_double_tap_on_both_choice_options_starts_only_one_feature(game_ready):
     """PS-FEA-043: rapidly tapping both Sticky and Raining options must
     start exactly one feature, never both/neither. Ref: GR-16."""
@@ -71,6 +74,7 @@ def test_rapid_double_tap_on_both_choice_options_starts_only_one_feature(game_re
 
 
 @pytest.mark.test_case("PS-FEA-044")
+@pytest.mark.test_case("PS-REG-087")
 def test_refresh_while_choice_screen_open_returns_to_choice_screen(game_ready):
     """PS-FEA-044: refreshing while the Free Spins choice screen is open
     must restore that same choice screen (same BN count/spin numbers), with
@@ -97,6 +101,7 @@ def test_refresh_while_choice_screen_open_returns_to_choice_screen(game_ready):
 
 
 @pytest.mark.test_case("PS-FEA-045")
+@pytest.mark.test_case("PS-REG-088")
 def test_choice_screen_shows_correct_spin_counts_for_every_bn_count(game_ready):
     """PS-FEA-045: the choice screen must show correct spin counts for each
     Bonus-symbol count (3/4/5/6). Ref: GR-05, GR-09, GR-17."""
@@ -150,6 +155,7 @@ def test_feature_transition_preserves_balance_bet_and_settings(game_ready, init_
 
 
 @pytest.mark.test_case("PS-FEA-047")
+@pytest.mark.test_case("PS-REG-089")
 def test_triggering_spin_pays_line_wins_before_entering_fs(game_ready):
     """PS-FEA-047: the triggering spin's own line wins must be paid before
     entering Free Spins — the base win is included in the triggering spin's

@@ -15,6 +15,7 @@ def _trigger_spin_without_waiting(game_page) -> None:
 @pytest.mark.interruption
 @pytest.mark.recovery
 @pytest.mark.test_case("PS-INT-001")
+@pytest.mark.test_case("PS-REG-108")
 def test_refresh_during_base_spin_leaves_exactly_one_debit(game_ready, init_data):
     """PS-INT-001: refreshing while a base-game spin is in flight must not
     produce a duplicate debit or a stuck round — on reload, the interrupted
@@ -39,6 +40,7 @@ def test_refresh_during_base_spin_leaves_exactly_one_debit(game_ready, init_data
 @pytest.mark.interruption
 @pytest.mark.recovery
 @pytest.mark.test_case("PS-INT-002")
+@pytest.mark.test_case("PS-REG-109")
 def test_refresh_during_win_presentation_credits_win_once(game_ready):
     """PS-INT-002: refreshing while a win is presenting must not re-apply or
     drop the win — the post-reload balance matches the server's own
@@ -56,6 +58,7 @@ def test_refresh_during_win_presentation_credits_win_once(game_ready):
 @pytest.mark.interruption
 @pytest.mark.recovery
 @pytest.mark.test_case("PS-INT-003")
+@pytest.mark.test_case("PS-REG-110")
 def test_refresh_during_free_spins_resumes_at_correct_spin(game_ready):
     """PS-INT-003: refreshing mid-Free-Spins must resume the round rather
     than lose it — unfinishedInfo is non-null before the reload and the
@@ -79,6 +82,7 @@ def test_refresh_during_free_spins_resumes_at_correct_spin(game_ready):
 @pytest.mark.interruption
 @pytest.mark.recovery
 @pytest.mark.test_case("PS-INT-004")
+@pytest.mark.test_case("PS-REG-111")
 def test_refresh_on_free_spins_choice_screen_restores_it(game_ready):
     """PS-INT-004: refreshing on the "Choose Your Free Spins Feature" screen
     must restore that same choice screen, not skip or lose it. Ref: GR-56."""
@@ -103,6 +107,7 @@ def test_refresh_on_free_spins_choice_screen_restores_it(game_ready):
 @pytest.mark.interruption
 @pytest.mark.recovery
 @pytest.mark.test_case("PS-INT-005")
+@pytest.mark.test_case("PS-REG-112")
 def test_refresh_immediately_after_buy_confirm(game_ready):
     """PS-INT-005: refreshing right after confirming Buy Feature must debit
     exactly once and resume the bought feature. Ref: GR-56.
@@ -120,6 +125,7 @@ def test_refresh_immediately_after_buy_confirm(game_ready):
 @pytest.mark.interruption
 @pytest.mark.recovery
 @pytest.mark.test_case("PS-INT-006")
+@pytest.mark.test_case("PS-REG-113")
 def test_close_reopen_during_base_spin_completes_round_server_side(game_ready, config, open_game_page_in):
     """PS-INT-006: closing the tab mid-spin and reopening must find the
     round completed server-side (one debit, balance/history consistent) —
@@ -143,6 +149,7 @@ def test_close_reopen_during_base_spin_completes_round_server_side(game_ready, c
 @pytest.mark.interruption
 @pytest.mark.recovery
 @pytest.mark.test_case("PS-INT-007")
+@pytest.mark.test_case("PS-REG-114")
 def test_close_reopen_during_free_spins_resumes(game_ready, open_game_page_in):
     """PS-INT-007: closing the tab mid-Free-Spins and reopening must resume
     the feature, not abandon it. Ref: GR-56."""
@@ -162,6 +169,7 @@ def test_close_reopen_during_free_spins_resumes(game_ready, open_game_page_in):
 @pytest.mark.interruption
 @pytest.mark.recovery
 @pytest.mark.test_case("PS-INT-029")
+@pytest.mark.test_case("PS-REG-130")
 def test_recovery_sequence_never_produces_duplicate_round_ids(game_ready):
     """PS-INT-029: across an interrupt-and-recover sequence (refresh during
     a base spin), no round ID repeats and the feature/credit effects of a
@@ -182,6 +190,7 @@ def test_recovery_sequence_never_produces_duplicate_round_ids(game_ready):
 @pytest.mark.interruption
 @pytest.mark.recovery
 @pytest.mark.test_case("PS-INT-030")
+@pytest.mark.test_case("PS-REG-131")
 def test_suspended_round_resumes_from_last_recorded_action(game_ready):
     """PS-INT-030: after an interruption, the session resumes from the last
     successfully recorded server action, never re-running or skipping it —

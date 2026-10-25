@@ -35,6 +35,9 @@ pytestmark = [pytest.mark.compatibility, pytest.mark.smoke]
 @pytest.mark.test_case("PS-CMP-011")
 @pytest.mark.test_case("PS-CMP-012")
 @pytest.mark.test_case("PS-CMP-013")
+@pytest.mark.test_case("PS-REG-105")
+@pytest.mark.test_case("PS-REG-106")
+@pytest.mark.test_case("PS-REG-107")
 def test_full_smoke_flow(game_ready, init_data):
     """PS-CMP-001..013 (Partial — see module docstring): load, spin and win,
     bet change, both Free Spins choices, Buy Feature interface, Auto Spin,
