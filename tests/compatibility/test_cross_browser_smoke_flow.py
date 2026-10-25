@@ -57,6 +57,19 @@ def test_full_smoke_flow(game_ready, init_data):
     result = game_ready.spin_and_wait()
     assert result.balance == balance_before - result.bet + result.total_win
 
+    # This is the first place in the suite that opens a control panel
+    # immediately after a spin rather than from an already-idle game —
+    # confirmed live (D-034) that the Bet button can be clicked and have no
+    # effect at all (not a timing-flaky partial render, a clean no-op) if
+    # the reel-landing/win-presentation animation is still visually playing
+    # client-side even though spin_and_wait() has already returned (the
+    # server response — and the win-presentation disabling of Bet/Menu
+    # while spinning, PS-UI-012 — don't track client-side animation length).
+    # Settles the same way spin() itself does before its own next Space
+    # press.
+    game_ready.wait_for_loading_overlay_to_clear()
+    game_ready.page.wait_for_timeout(3_000)
+
     # Bet change.
     bet_panel = game_ready.open_bet_panel()
     bet_panel.select_bet("2.00")

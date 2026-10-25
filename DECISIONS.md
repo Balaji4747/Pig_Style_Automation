@@ -993,3 +993,46 @@ findings are the same already-documented D-019 environment block, now handled wi
 unrelated coverage. The bet-panel finding is the same already-documented client-side
 timing/animation flakiness class as D-023/D-024/D-026, now slightly more resilient across the
 whole suite (any caller of `select_bet()` benefits, not just this test).
+
+**Update: the bet-panel finding's classification above was wrong — the widened retry did NOT
+fix it. See D-034 for the actual root cause.**
+
+## D-034: the real cause of PS-CMP's bet-panel failure — Bet is a clean no-op right after a spin, not a stagger-render race; this is the first test to open a control panel immediately after spinning
+
+A third PS-CMP run, after D-033's retry widening, failed identically and just as fast (~41s
+total — the two added retry waits clearly weren't the bottleneck). Investigated further
+instead of assuming D-033's theory was simply "not enough retries": a disposable diagnostic
+(`tests/_diag_bet_panel2.py`, deleted after use) reproduced the exact sequence
+(`force_next_spin` -> `spin_and_wait()` -> `open_bet_panel()`) and dumped the full PIXI text
+tree afterward — **zero** bet-amount-grid nodes existed at all (not "present but momentarily
+unrendered" as in D-023/D-024; the real "BET AMOUNT (€)" panel content was simply never
+created), while a screenshot taken at the same point showed the reels still visibly
+mid-animation (blurry symbols) with the "GOOD LUCK!!!" ticker still showing — the base game
+had not visually finished landing yet, even though `spin_and_wait()` had already returned
+(`result.is_feature_triggered=False`, `result.closed=True`, `unfinished_info=None` — the
+server-side round was genuinely done). The bet button's own bounds were valid and present
+(`{x:1177,y:247,w:52,h:52}`), so the click registered on the right location — it simply did
+nothing, consistent with the already-documented PS-UI-012 behavior (Bet/Menu disabled while
+reels are spinning): the client apparently keeps that control disabled through the tail end of
+its own win-presentation/reel-landing animation, which runs longer than the server round
+itself and isn't tracked by `spin_and_wait()`'s response-based wait at all.
+
+Confirmed via `grep` that `tests/compatibility/test_cross_browser_smoke_flow.py` is the ONLY
+test in the whole suite that calls any panel-opening method (`open_bet_panel`,
+`open_buy_feature`, `open_auto_spin_menu`, `open_info_panel`) immediately after
+`spin_and_wait()` in the same flow — every other `spin_and_wait()` caller either ends the test
+there or does further spin/assert work, never an immediate UI-panel open. So this is a
+genuinely new interaction sequence this project hadn't exercised before, not a regression of
+anything previously covered.
+
+Fixed locally in the test (not in `GamePage`, since no other current caller needs this —
+avoids a speculative shared-code change for a single call site): added the same
+`wait_for_loading_overlay_to_clear()` + fixed 3s settle wait `spin()` already uses internally
+before its own next Space press, right after the spin and before opening the bet panel.
+
+**Review**: TEST ISSUE, not a product defect — matches documented, intentional game behavior
+(controls disabled during win presentation); the test was just missing the settle wait that
+every other spin-adjacent interaction in this suite already has, because this exact
+"open a panel right after spinning" sequence had never been written before. D-033's bet-panel
+retry widening is harmless and kept (a genuine, if different, transient class could still hit
+it elsewhere), but was not the actual fix for this failure.
