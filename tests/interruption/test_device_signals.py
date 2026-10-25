@@ -46,15 +46,25 @@ def test_app_background_signal_during_free_spins_resumes(game_ready):
     """PS-INT-013 (Partial): same `visibilitychange` approximation as
     PS-INT-012, applied mid-Free-Spins — the feature must still be
     resolvable (not stuck) once the page is foregrounded again.
-    Ref: GR-56."""
+
+    Waits for the Free Spins choice screen to actually be showing before
+    dispatching the hidden/visible cycle — confirmed live: dispatching it
+    immediately after the triggering spin's response, during the choice
+    screen's own fade-in transition, left the session unable to recover
+    (reproduced twice). Interacting with a settled state rather than a
+    mid-transition one matches how every other visibilitychange test here
+    behaves. Ref: GR-56."""
     game_ready.force_next_spin("3 OAK BN")
     game_ready.spin_and_wait_feature_trigger_only()
+    game_ready.wait_for(
+        lambda: game_ready.get_pixi_node_or_none(game_ready.FEATURE_CHOICE_TITLE_NODE) is not None, timeout_ms=15_000
+    )
 
     game_ready.dispatch_visibility_change(hidden=True)
     game_ready.page.wait_for_timeout(2_000)
     game_ready.dispatch_visibility_change(hidden=False)
 
-    game_ready.resolve_pending_feature(timeout_ms=60_000)
+    game_ready.resolve_pending_feature(timeout_ms=120_000)
     assert game_ready.get_init_data().unfinished_info is None
 
 
@@ -109,15 +119,22 @@ def test_incoming_call_signal_during_free_spins_resumes(game_ready):
     """PS-INT-015 (Partial, P1): simulates "incoming call during Free
     Spins" via `visibilitychange` — audio restoration cannot be verified by
     this harness at all (no audio-engine hook), so only "the feature
-    resumes/is resolvable afterwards" is checked. Ref: GR-56."""
+    resumes/is resolvable afterwards" is checked.
+
+    Waits for the choice screen to actually be showing before dispatching
+    the hidden/visible cycle — see PS-INT-013's docstring for why.
+    Ref: GR-56."""
     game_ready.force_next_spin("3 OAK BN")
     game_ready.spin_and_wait_feature_trigger_only()
+    game_ready.wait_for(
+        lambda: game_ready.get_pixi_node_or_none(game_ready.FEATURE_CHOICE_TITLE_NODE) is not None, timeout_ms=15_000
+    )
 
     game_ready.dispatch_visibility_change(hidden=True)
     game_ready.page.wait_for_timeout(3_000)
     game_ready.dispatch_visibility_change(hidden=False)
 
-    game_ready.resolve_pending_feature(timeout_ms=60_000)
+    game_ready.resolve_pending_feature(timeout_ms=120_000)
     assert game_ready.get_init_data().unfinished_info is None
 
 

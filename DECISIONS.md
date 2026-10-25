@@ -335,6 +335,23 @@ after a reload, not accounting for the already-documented possibility that the f
 observing the in-flight run using the old code to gather more data cheaply); a clean
 rerun is needed to get real pass/fail numbers for the tests this fix touches.
 
+## D-015: PS-INT-013/015 reproducibly broke the session when dispatching visibilitychange during the choice-screen transition
+A clean rerun (after D-014) still failed `test_app_background_signal_during_free_spins_resumes`
+(PS-INT-013) a second time, with the identical symptom (base game, "GOOD LUCK!!!" banner,
+mid-spin blur) — confirming this is reproducible, not a one-off. Root cause: both
+PS-INT-013 and PS-INT-015 dispatched the fake `visibilitychange` hidden/shown cycle
+*immediately* after the triggering spin's network response, i.e. during the Free Spins
+choice screen's own fade-in transition, rather than once it had actually settled. Every
+other `visibilitychange` test in this file (PS-INT-012, PS-INT-014) interacts with an
+already-stable state and passes reliably. Fixed by waiting for
+`FEATURE_CHOICE_TITLE_NODE` to actually appear before dispatching the hidden/shown cycle,
+matching the pattern every other test already uses.
+**Review**: this strengthens D-008's existing caveat about the `visibilitychange`
+approximation — it is evidently not just "an imperfect stand-in for real backgrounding,"
+it can actively disrupt this specific game's own render/transition logic if fired during
+a UI transition rather than a settled state. Worth keeping in mind for any future test
+that dispatches it: always wait for a stable state first.
+
 **Review**: this makes four independent stuck-round incidents across this run (D-005,
 D-009/010/011, D-012, D-013). Each was root-caused and fixed rather than papered over, but
 the pattern itself (new previously-unknown mid-sequence UI states keep surfacing) suggests
