@@ -13,3 +13,5 @@ reports/defects/**/*.zip
 venv/
 *.egg-info/
 .vscode/
+
+.claude/scheduled_tasks.lock
