@@ -289,3 +289,25 @@ server-computed balance captured from the pre-tamper response instead. Re-ran cl
 **9 passed / 5 failed (all D-019) / 13 skipped.**
 
 Next: PS-MTH (Math Validation, 63 rows) per the original working order.
+
+## CHECKPOINT 7 (2026-10-25): PS-MTH live-validated — found a confirmed calculator gap (D-025), not fixed per standing instructions
+First live run: 11 failed / 13 passed. 9 of 11 are D-019. The other 2 were a bet-panel
+cleanup issue investigated across three fix attempts (D-023 retry, D-024 settle wait in
+`open_bet_panel()`) — neither resolved it, so it was made non-fatal with a reload fallback
+instead (D-026), since the real assertion in both tests already passes before that point.
+
+A second rerun surfaced a new, more significant finding: `test_symbol_win_amount_matches_calculator[PS-MTH-017-AA-6OAK]`
+failed with a real win-math mismatch (server `total_win=2` vs. calculator `1.50`) on an
+unforced spin that happened to land a wild in a winning way — the first wild-involved
+winning spin this project has ever captured. Confirmed (D-025): `utils/megaways_calculator.py`'s
+`evaluate()` reconstructs ways correctly but does not scale a wild-involved way's win by
+the active wild multiplier, undercounting `total_win` whenever a wild participates. Per the
+explicit standing instruction, **the calculator was NOT modified** — this is logged in
+DECISIONS.md D-025 for review instead. Any test comparing server `total_win` to this
+oracle will intermittently fail on a random wild-involved win until this is fixed.
+
+Final result: **12 passed / 12 failed** (9 D-019, 2 D-025-adjacent bet-reset — now fixed,
+1 D-025 calculator gap — expected to recur intermittently and correctly classified, not a
+bug in our test code).
+
+Next: PS-FEA (Feature Testing, 59 rows) per the original working order.
