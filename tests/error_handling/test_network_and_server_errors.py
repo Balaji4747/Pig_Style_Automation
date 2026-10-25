@@ -44,17 +44,24 @@ def test_server_503_at_launch_shows_maintenance_message(context, config):
     """PS-ERR-007 (P1): launching while the server returns 503 must show a
     maintenance message rather than a broken/partial game, and launching
     again normally afterward must succeed. Ref: GR-56."""
+    from pages.game_page import GamePage
+    from utils.network_spy import NetworkSpy
+
     pattern = re.compile(config["network_patterns"]["init"])
     page = context.new_page()
     page.route(pattern, lambda route: route.fulfill(status=503, json={"error": "maintenance"}))
 
+    blocked_game = GamePage(page, NetworkSpy(page, config["network_patterns"]))
     page.goto(config["game_url"])
     page.wait_for_timeout(5_000)
-    # No confirmed PIXI node name exists for a maintenance/error screen, so
-    # this asserts the safe negative: the game must NOT reach a normal,
-    # interactive base-game state while the server is down.
-    pixi_ready = page.evaluate("() => !!(window.__PIXI_APP__ && window.__PIXI_APP__.stage)")
-    assert not pixi_ready, "game appeared to initialize normally despite a 503 on init"
+    # window.__PIXI_APP__ boots regardless of whether init succeeded (the
+    # renderer itself doesn't depend on backend data) — confirmed live
+    # (D-020), so checking raw PIXI readiness can never distinguish "normal
+    # base game showing" from "an error screen rendered via the same PIXI
+    # canvas". is_base_game_ready() checks for the base-game-specific
+    # megawaysText node instead, which only appears once real game data has
+    # loaded.
+    assert not blocked_game.is_base_game_ready(), "base game appeared to load normally despite a 503 on init"
 
     page.unroute(pattern)
     page.close()
@@ -68,14 +75,26 @@ def test_spin_timeout_shows_message_and_recovers(game_ready, config):
     pattern = re.compile(config["network_patterns"]["spin"])
     balance_before = game_ready.get_init_data().player_info.balance
 
+    stuck_routes = []
+
     def never_respond(route):
-        pass  # deliberately never calls route.fulfill/continue/abort
+        stuck_routes.append(route)  # deliberately never fulfilled/continued yet
 
     game_ready.page.route(pattern, never_respond)
     try:
         with pytest.raises(PlaywrightTimeoutError):
             game_ready.spin(timeout_ms=8_000)
     finally:
+        # Confirmed live (D-020): unrouting a handler while its route is
+        # still pending lets Playwright forward the stuck request to the
+        # real network instead of discarding it, so the "blocked" spin
+        # actually completes server-side right as this test moves on —
+        # explained a real balance mismatch after reload. Abort it first.
+        for route in stuck_routes:
+            try:
+                route.abort()
+            except Exception:
+                pass
         game_ready.page.unroute(pattern, never_respond)
 
     game_ready.reload_and_wait_ready()
@@ -138,8 +157,16 @@ def test_recovery_after_consecutive_errors_has_correct_state_and_no_duplicates(g
     errors in a row, each followed by a reload. Ref: GR-56."""
     balance_before = game_ready.get_init_data().player_info.balance
 
+    def make_handler(status_code: int):
+        # A second positional parameter here would be misread by Playwright
+        # as "pass the Request object too" (it inspects the handler's
+        # arity), clobbering a `s=status` default-argument capture with a
+        # real Request instead — confirmed live (D-020). Capture status via
+        # closure over a factory function instead.
+        return lambda route: route.fulfill(status=status_code, json={"error": "mock"})
+
     for status in (500, 401):
-        mock_spin_failure(lambda route, s=status: route.fulfill(status=s, json={"error": "mock"}))
+        mock_spin_failure(make_handler(status))
         game_ready.reload_and_wait_ready()
         assert game_ready.get_init_data().player_info.balance == balance_before
 

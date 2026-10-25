@@ -91,7 +91,13 @@ def test_asset_load_failure_at_launch_shows_no_partial_ui(config, open_game_page
     blocked_page, _pattern = open_game_page_blocking_assets(context)
     blocked_page.page.goto(config["game_url"])
     blocked_page.page.wait_for_timeout(8_000)
-    assert not blocked_page.is_loaded(), "game reached a normal ready state despite blocked assets"
+    # is_loaded() only checks that window.__PIXI_APP__ booted, which it
+    # does regardless of whether sprite/audio assets actually loaded (the
+    # renderer itself doesn't depend on them) — confirmed live (D-020).
+    # is_base_game_ready() checks for the base-game-specific megawaysText
+    # node instead, a much better proxy for "the real game, not a broken
+    # partial UI, is showing".
+    assert not blocked_page.is_base_game_ready(), "base game reached a normal ready state despite blocked assets"
     blocked_page.page.close()
 
     normal_page = context.new_page()

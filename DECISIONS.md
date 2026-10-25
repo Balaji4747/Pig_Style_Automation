@@ -524,3 +524,81 @@ validation effort, and changes the shape of remaining work significantly:
 - Tests that DON'T depend on forced outcomes (real/unforced spins, network-fault
   simulation, refresh/reload of naturally-occurring state, UI/compatibility checks) are
   unaffected by this and should continue to be run and trusted normally.
+
+## D-020: first live PS-ERR run found three genuine, unrelated test-code bugs (not D-019, not product defects)
+
+First full live run of PS-ERR (`ps_err_run1`): 6 failed / 8 passed / 6 skipped. 2 of the 6
+failures are the already-understood D-019 `force_next_spin()` blocker (expected, no new
+work needed). The other 4 were new and investigated individually:
+
+1. **`test_server_503_at_launch_shows_maintenance_message` /
+   `test_asset_load_failure_at_launch_shows_no_partial_ui`**: both asserted
+   `not <raw is_loaded()/pixi_ready check>` as a proxy for "the game didn't load despite
+   the failure." Wrong signal: `window.__PIXI_APP__` boots regardless of whether
+   init succeeded or assets loaded — the renderer itself doesn't depend on that data, so
+   it was true in both cases, failing the test even though the actual game might be
+   correctly showing an error state (also PIXI-rendered, so indistinguishable from the
+   normal base game using this check alone). Fixed: both now check
+   `GamePage.is_base_game_ready()` (the `megawaysText` node, base-game-specific) instead of
+   raw PIXI readiness.
+2. **`test_recovery_after_consecutive_errors_has_correct_state_and_no_duplicates`**: used
+   `lambda route, s=status: route.fulfill(status=s, ...)` inside a loop, intending the
+   `s=status` default argument to capture the loop variable per iteration (normal Python
+   idiom to dodge late-binding). But Playwright's Python bindings inspect a route handler's
+   arity to decide whether to call it as `handler(route)` or `handler(route, request)` —
+   a 2-parameter lambda gets the latter, so `s` was silently bound to the real `Request`
+   object instead of `status` on every call, and `route.fulfill(status=<Request>, ...)`
+   failed with a serialization error inside the event listener; the exception then
+   surfaced (misleadingly) at the next unrelated `page.unroute()` call via Playwright's
+   async task propagation. Fixed: replaced with a `make_handler(status_code)` factory
+   function returning a plain one-parameter lambda, avoiding the arity collision entirely.
+3. **`test_spin_timeout_shows_message_and_recovers`**: balance after reload was off by
+   exactly the cost of one real spin, even though the test deliberately installed a
+   `never_respond` route (never calling fulfill/continue/abort) specifically so the spin
+   request would never reach the real server. Root cause: calling `page.unroute()` while
+   that route is still pending/unresolved lets Playwright forward the stuck request to the
+   network once no handler remains to hold it — so the "blocked" spin actually completed
+   for real, server-side, right as the test moved on to its own cleanup. Fixed: the handler
+   now records each pending route and explicitly calls `route.abort()` on it before
+   unrouting.
+
+**Review**: none of these three are product defects — all are genuine test-code bugs, two
+of them (#2, #3) are subtle Playwright-API footguns worth remembering project-wide:
+closures over a loop variable via a second lambda parameter are unsafe for any Playwright
+route handler specifically (arity is semantically meaningful to Playwright, not just a
+Python convenience), and any route handler that may still be pending when cleanup runs
+must be explicitly aborted, not just unrouted, or Playwright will silently let it through
+to the real network. Worth a quick grep across the rest of the suite for either pattern
+before trusting other route-mocking tests' balance assertions at face value.
+
+## D-021: back-to-back spin_and_wait() calls can time out even after a clean, losing, non-feature spin — not just after a win — fixed with a one-retry fallback in GamePage.spin()
+
+While re-validating D-020's fixes, `test_recovery_after_consecutive_errors_has_correct_state_and_no_duplicates`
+kept failing on its second of two immediately-consecutive `spin_and_wait()` calls, even
+after fixing the three D-020 bugs. Reproduced 3/3 times, including in a minimal standalone
+diagnostic with no error-mocking involved at all — plain `result_a = spin_and_wait();
+result_b = spin_and_wait()`. Checked `result_a` directly: `is_feature_triggered=False`,
+`total_win=0`, `unfinished_info=None` — a completely clean, losing, non-feature spin, which
+rules out the previously-documented "ignores input during a win celebration" explanation
+(this file's own existing notes assumed only a winning spin's rollup could cause this).
+So the fixed 3s settle wait before the Space press is sometimes insufficient even with
+nothing to animate, for reasons not yet identified (possibly balance/UI-counter update
+timing, or server-side latency on this heavily-used shared account — this session's balance
+has drifted into the millions from a long testing history, which is unlikely to matter but
+hasn't been ruled out either).
+
+Fix: `GamePage.spin()` now retries once on a `TimeoutError` — a single extra 5s settle wait
+followed by one more Space press and wait — mirroring the retry pattern already established
+and trusted for feature spins in `play_feature_spins_to_completion()` (D-011). Confirmed via
+the same minimal diagnostic: `result_b` succeeded immediately after this fix.
+
+**Review**: since `GamePage.spin()` backs essentially every spin in this entire suite
+(including the already-automated Functional sheet), this fix is maximally low-risk (only
+activates on an actual timeout, otherwise behaves exactly as before) but maximally
+high-leverage — any other test anywhere in the suite doing two unforced spins back-to-back
+with no explicit gap (several PS-UI/PS-STR/PS-MTH cases do this) may have been silently
+flaky for this same reason without anyone noticing, since a single spin test wouldn't
+trigger it. Worth watching whether this fully explains it or is itself just a wider-margin
+band-aid — if a THIRD consecutive spin still times out even after one retry in some future
+run, escalate to the structural fix already flagged in D-011/D-012 (poll a real per-spin
+completion signal instead of any fixed wait).

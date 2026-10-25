@@ -208,7 +208,19 @@ class GamePage(BasePage):
             self.page.locator(self.CANVAS_SELECTOR).first.focus()
             self.page.keyboard.press("Space")
 
-        return self.network_spy.wait_for_response("spin", trigger, timeout_ms=timeout_ms)
+        try:
+            return self.network_spy.wait_for_response("spin", trigger, timeout_ms=timeout_ms)
+        except PlaywrightTimeoutError:
+            # Confirmed live (D-021): two spin_and_wait() calls issued back
+            # to back with no real-world gap between them can still time
+            # out here even after a losing, non-feature spin — the fixed 3s
+            # settle wait is sometimes not enough margin on its own, and a
+            # too-early Space press is silently dropped by the game rather
+            # than queued (same pattern already established for feature
+            # spins in play_feature_spins_to_completion()). One retry with
+            # a longer settle wait recovers from exactly this race.
+            self.page.wait_for_timeout(5_000)
+            return self.network_spy.wait_for_response("spin", trigger, timeout_ms=timeout_ms)
 
     def spin_and_wait(self) -> SpinResult:
         """Spins and returns the parsed result. If the spin triggered a
