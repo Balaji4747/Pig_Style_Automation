@@ -350,3 +350,35 @@ Final result: **9 passed / 3 failed (all 3 confirmed D-019) / 23 skipped.** PS-E
 considered live-validated and stable.
 
 Next: PS-UI (UI/UX Testing, 47 rows) per the original working order.
+
+## CHECKPOINT 10 (2026-10-25): PS-UI live-validated clean after D-030/D-031/D-032 fixes (3 rounds)
+
+First live run: 3 failed / 9 passed, 2 of 3 confirmed D-019. The third,
+`test_no_template_placeholders_visible_anywhere` (PS-UI-036, P0), flagged a dormant
+jackpot-message template (`{{text1..4}}` placeholders) that this session's `jackpot_info`
+(always `None`) confirms a player can never actually trigger. Took three live-diagnosis
+rounds to actually fix, each disproving the previous theory:
+- **D-030**: theorized a hidden-ancestor-container false positive, fixed by checking
+  `node.worldVisible` instead of local `visible`. Rerun showed the exact same failure.
+- **D-031**: theorized the node was positioned off-screen instead, fixed by also requiring
+  `getBounds()` to intersect `app.screen`. Same rerun also caught and fixed an unrelated bug
+  in `test_game_stays_interactive_at_resolution` (asserted `closed` on a spin that
+  incidentally triggered a real feature; didn't restore the viewport in a `finally`, which
+  broke the next parametrized case's own fixture setup). Rerun of the placeholder test still
+  showed the exact same failure.
+- **D-032**: stopped guessing and wrote a disposable diagnostic test to dump the real node's
+  live properties. Found `node.worldVisible`/`worldAlpha` are `undefined` on every node in
+  this PIXI build — D-030's fix had been silently falling through to the same local-`visible`
+  check it was meant to replace the whole time. The diagnostic's captured ancestor chain
+  showed the real cause: the text node's own `visible` is `true`, but its direct parent
+  (`jpHitCelebrationComp`) is `false`. Fixed by manually walking the tree and AND-ing
+  `visible` down through the ancestor chain during the scan, instead of trusting any single
+  PIXI-provided aggregate property. Confirmed working on the next rerun.
+
+Final result: **9 passed / 3 failed (all 3 confirmed D-019, same signature as every other
+sheet) / 0 skipped.** PS-UI is now considered live-validated and stable. See DECISIONS.md
+D-030/D-031/D-032 for the full investigation trail — the main lesson generalized into
+CLAUDE.md: don't trust a plausible-sounding PIXI API's behavior without confirming live what
+it actually returns on this specific build.
+
+Next: PS-CMP (Compatibility) and PS-REG (Regression) per the original working order.
