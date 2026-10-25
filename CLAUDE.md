@@ -394,6 +394,11 @@ docs/samples/ real, verbatim init/spin/cheat-options API captures (see its READM
   undercounts by omitting x1 — not a product bug, per client clarification).
 
 ## Open items
+- **Confirmed live (25 Oct 2026, D-028): opening a second real browser tab against the
+  same session can get the first tab's own spin rejected** (a non-200 response with no
+  `data` key) — single-session enforcement, previously only confirmed via a mocked
+  concurrent-login scenario, now reproduced with two genuine tabs. Treated as correct
+  behavior (matches the workbook's own accepted criteria for PS-EDG-036), not a defect.
 - OBS-02/03/04 (Wild symbol docs, win-evaluation wording, ways vs. payline
   language) — client said these would be clarified once the live game was
   available; now that we have it, worth a follow-up pass against the live

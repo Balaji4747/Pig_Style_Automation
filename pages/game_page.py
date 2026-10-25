@@ -449,6 +449,11 @@ class GamePage(BasePage):
         self.page.mouse.down()
         self.page.wait_for_timeout(hold_ms)
         self.page.mouse.up()
+        # Same per-item stagger-animation class of issue confirmed for the
+        # bet panel (D-024) — a later-positioned spin-count option (e.g.
+        # "25", third of five) can still be mid-fade right after the menu
+        # opens, while an earlier one (e.g. "5") already renders.
+        self.page.wait_for_timeout(1_000)
         return AutoSpinPanel(self.page)
 
     def open_info_panel(self) -> RulesPage:

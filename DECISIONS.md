@@ -763,3 +763,43 @@ spin step) is still not understood. If this pattern surfaces again somewhere a r
 fallback isn't appropriate, it's worth a dedicated live investigation comparing the PIXI
 tree immediately after `open_bet_panel()` in the failing in-test context versus the
 diagnostic's non-failing context, rather than guessing at another timing fix.
+
+## D-027: PS-EDG's auto-spin count selection hit the same stagger-animation bug as the bet panel (D-023/D-024), now fixed at the source
+
+First live PS-EDG run: 7 failed / 5 passed / 23 skipped. `test_auto_spin_smallest_and_largest_count_options`
+failed with `RuntimeError: No visible PIXI node with text '25' found` — the second of two
+spin-count selections in the same test (the first, "5", succeeded). Same shape as D-023/
+D-024: `GamePage.open_auto_spin_menu()` had zero settle wait after releasing the long-press,
+and a later-positioned option in the menu's own per-item entrance animation (25 is third of
+five: 5/10/25/50/100) can still be mid-fade right when the next click lands. Fixed the same
+way: a 1s settle wait added to `open_auto_spin_menu()` itself, plus a one-retry fallback in
+`AutoSpinPanel.select_spin_count()` as a second line of defense.
+
+## D-028: two genuinely new PS-EDG findings — a browser-navigation test bug and a two-tab test that assumed only one possible (and wrong) outcome
+
+Two of PS-EDG's first-run failures were real, distinct issues, not D-019 or the stagger bug:
+
+1. **`test_browser_back_during_spin_completes_round_server_side`**: failed with a plain
+   `TimeoutError: Timeout 30000ms exceeded while waiting for event "response"`. Root cause:
+   this game is a single-page app with exactly one navigation entry in this test's fresh
+   tab (the fixture's own initial `goto()`) — `page.go_back()` therefore leaves the game's
+   origin entirely, landing on the tab's blank starting entry, with nothing to "go back" to
+   within the game itself. The test's own next step, `reload_and_wait_ready()`, then
+   reloads that blank page forever waiting for an `/init` response that can never arrive
+   from it. Fixed: after `go_back()`, re-navigate directly to the game URL (what "returning"
+   actually means here) instead of reloading whatever page was left behind.
+2. **`test_two_tabs_one_session_stay_balance_consistent`**: failed with
+   `KeyError: 'data'` inside `parse_spin_response` — the real spin response in this live run
+   had no `data` key, consistent with a rejection (matching the shape of PS-ERR's already-
+   confirmed, mocked concurrent-login-invalidates-session case, now apparently reproduced for
+   real with two genuine tabs on one session). The test's own docstring already names both
+   possible outcomes as acceptable ("either single-session is enforced, or both tabs agree
+   once refreshed") but the code only ever handled the "succeeds" branch. Fixed: inspect the
+   raw exchange status/body before parsing, and treat a rejected spin as a valid pass
+   (satisfying the test's own stated acceptance criteria) instead of crashing on the parse.
+
+**Review**: finding #2 is worth flagging up — if two real browser tabs on one session
+reliably get one spin rejected, that's a meaningful, real confirmation of single-session
+enforcement worth noting in CLAUDE.md's open items, distinct from the previously
+mocked-only version of this behavior. Not escalating further right now since the test's own
+acceptance criteria already treats this as correct behavior, not a defect.
