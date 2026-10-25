@@ -277,3 +277,15 @@ failures are the already-understood, unfixable-from-test-code D-019 cheat-forcin
 PS-ERR is now considered live-validated and stable.
 
 Next: PS-STR (Transactions/State Integrity, 27 rows) per the original working order.
+
+## CHECKPOINT 6 (2026-10-25): PS-STR live-validated clean
+First live run: 6 failed / 8 passed / 13 skipped. 5 of 6 failures are the D-019 blocker
+(including one additional detail logged in D-022: "FEATURE_MISS" isn't even a clickable
+cheat-panel option in the live UI, though it's a valid cheat.json key — moot regardless,
+since D-019 already means forcing anything has no effect). The 6th failure was a genuine
+test bug: `test_spin_response_negative_win_does_not_corrupt_balance` assumed every unforced
+real spin nets a loss, which isn't guaranteed. Fixed (D-022) to assert against the real
+server-computed balance captured from the pre-tamper response instead. Re-ran clean:
+**9 passed / 5 failed (all D-019) / 13 skipped.**
+
+Next: PS-MTH (Math Validation, 63 rows) per the original working order.
