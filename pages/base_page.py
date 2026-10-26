@@ -100,6 +100,39 @@ class BasePage:
         except RuntimeError:
             return None
 
+    def is_pixi_node_interactive(self, name: str) -> bool:
+        """Whether the named, visible PIXI node's own `interactive` flag is
+        true — distinct from (and stricter than) visible+non-zero-bounds.
+
+        Confirmed live (D-034): a control's `visible`/bounds can look
+        completely normal while its `interactive` flag is still `false`
+        (e.g. the Bet button for ~26s after a spin, well past the client's
+        own win-presentation animation finishing) — a click lands on the
+        right canvas pixel but is a clean no-op, no exception, nothing to
+        catch. Use `wait_for_pixi_interactive()` before clicking a control
+        shortly after a spin rather than guessing a fixed delay."""
+        return bool(
+            self.page.evaluate(
+                """(name) => {
+                    const app = window.__PIXI_APP__;
+                    if (!app || !app.stage) return false;
+                    let node = null;
+                    (function walk(n) {
+                        if (!n || node) return;
+                        if (n.name === name && n.visible) node = n;
+                        if (n.children) for (const c of n.children) walk(c);
+                    })(app.stage);
+                    return !!(node && node.interactive);
+                }""",
+                name,
+            )
+        )
+
+    def wait_for_pixi_interactive(self, name: str, timeout_ms: int = 30_000) -> None:
+        """Poll until the named PIXI node's own `interactive` flag is true.
+        See `is_pixi_node_interactive()` for why this check exists."""
+        self.wait_for(lambda: self.is_pixi_node_interactive(name), timeout_ms=timeout_ms)
+
     def click_pixi_button(self, name: str) -> None:
         """Click the center of a named, visible PIXI button. Preferred over
         click_canvas() with hardcoded coordinates: the bounds are read live

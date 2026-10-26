@@ -65,10 +65,10 @@ def test_full_smoke_flow(game_ready, init_data):
     # client-side even though spin_and_wait() has already returned (the
     # server response — and the win-presentation disabling of Bet/Menu
     # while spinning, PS-UI-012 — don't track client-side animation length).
-    # Settles the same way spin() itself does before its own next Space
-    # press.
+    # Confirmed live this can take ~26s, well past any fixed guess, so this
+    # polls the control's own `interactive` flag instead (D-034 follow-up).
     game_ready.wait_for_loading_overlay_to_clear()
-    game_ready.page.wait_for_timeout(3_000)
+    game_ready.wait_for_pixi_interactive(game_ready.BET_BUTTON_NODE, timeout_ms=45_000)
 
     # Bet change.
     bet_panel = game_ready.open_bet_panel()

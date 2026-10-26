@@ -1086,3 +1086,31 @@ is next captured naturally.
 
 **Review**: this closes D-025 as FIXED. CLAUDE.md's calculator section, which described this
 as a confirmed unfixed bug, needs updating to match.
+
+## D-036: D-034's fixed 3s settle wait was also just a guess — the real Bet-button re-enable delay measured at ~26s live; replaced with a proper interactive-flag poll
+
+A fourth PS-CMP run, after D-034's fixed-3s-wait fix, failed identically at the same spot
+(`bet_panel.select_bet("2.00")`) in ~46s total — confirming 3s was nowhere near enough, not
+just a close miss. Rather than guess a bigger fixed number, measured it directly: a disposable
+diagnostic (`tests/_diag_bet_panel6.py`/`_diag_bet_panel7.py`, deleted after use) read the Bet
+button's own PIXI `interactive` flag directly (not bounds/visibility) and polled it every 500ms
+after a spin. Result: `interactive` was `false` from 0s through 25.1s, then `true` at 25.9s —
+confirming D-034's root-cause theory exactly (the control really is disabled, not a rendering
+race) but showing the real delay is roughly **9x** the 3s guess. Also ruled out, via earlier
+diagnostics in this same investigation, that this was DOM-overlay interception (no stray
+element at the click coordinates — `document.elementFromPoint` returned the canvas both before
+and after) or session-pollution from this long marathon session's accumulated stale state (a
+full `reload_and_wait_ready()` immediately before the sequence reproduced the identical
+~26s-disabled behavior).
+
+Fixed properly instead of widening the guess again: added `BasePage.is_pixi_node_interactive()`
+/ `wait_for_pixi_interactive()` (polls a node's own `interactive` flag, not bounds/visibility)
+and used it in place of the fixed wait, with a 45s timeout (comfortable margin over the
+measured ~26s). This is a new, reusable, general-purpose primitive — any future test that
+opens a control panel shortly after a spin should use it instead of guessing a delay.
+
+**Review**: TEST ISSUE (the test was using an arbitrary fixed wait for something with no fixed
+duration). Not re-classified as a product defect — a ~26s control-disable window after a spin,
+while long, isn't inherently wrong without knowing the intended UX spec, and no workbook row
+claims a maximum re-enable time. Worth a note to the team if this duration seems surprising to
+them, but not asserted against here since no documented expectation exists to check it against.
