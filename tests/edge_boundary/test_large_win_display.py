@@ -43,7 +43,7 @@ def test_many_simultaneous_wins_evaluate_and_present_correctly(game_ready):
             break
     assert result is not None, "no spin reached >= 1000 ways in 10 attempts"
 
-    ways = evaluate(result.reel_view, pay_table, result.bet_amount_used)
+    ways = evaluate(result.reel_view, pay_table, result.bet_amount_used, wild_multipliers=result.wild_multipliers)
     assert result.total_win == total_win(ways)
     # The canvas must still be responsive after presenting a complex board.
     assert game_ready.is_pixi_ready()

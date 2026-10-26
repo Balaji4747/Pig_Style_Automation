@@ -14,7 +14,7 @@ FORCE_OUTCOMES_FOR_WINS = ["3 OAK AA", "4 OAK BB ", "5 OAK CC ", "3 OAK KK ", "4
 
 
 def _assert_calculator_matches_server(result, paytable) -> None:
-    computed_ways = evaluate(result.reel_view, paytable, result.bet_amount_used)
+    computed_ways = evaluate(result.reel_view, paytable, result.bet_amount_used, wild_multipliers=result.wild_multipliers)
     assert total_win(computed_ways) == result.total_win
 
     server_set = {

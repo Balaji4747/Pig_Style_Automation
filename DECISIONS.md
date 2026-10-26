@@ -1036,3 +1036,53 @@ every other spin-adjacent interaction in this suite already has, because this ex
 "open a panel right after spinning" sequence had never been written before. D-033's bet-panel
 retry widening is harmless and kept (a genuine, if different, transient class could still hit
 it elsewhere), but was not the actual fix for this failure.
+
+## D-035: fixed the D-025 wild-multiplier calculator gap, with explicit user sign-off
+
+The user explicitly authorized fixing `utils/megaways_calculator.py`'s confirmed D-025 gap
+(a winning way containing a wild was not scaled by the round's active wild multiplier,
+under-calculating `total_win`) — this satisfies the standing "never modify without explicit
+discussion" rule for this file.
+
+Fix: added `active_wild_multiplier(wild_multipliers)`, which combines the server's raw
+`wildMultipliers` entries into a single value to apply to any winning way with
+`wild_count > 0`. Confirmed from the one real captured sample (D-025:
+`wild_multipliers=[[1, 4, 2]]`, a wild_count=1 way paid exactly double): the LAST element of
+each entry is the real multiplier value, not an index. A value of 0 (seen in a real
+non-winning sample, `docs/samples/spin_response.json`'s `[[3, 2, 0]]`) is treated as 1 (no
+effect), since 0 is never a valid wild-multiplier value per the math file's confirmed x1/x2/x3
+range and zeroing a win outright had no supporting evidence. `evaluate()` gained an optional
+`wild_multipliers` parameter (default `None` -> behaves exactly as before for any caller that
+doesn't pass it — confirmed via a new unit test, `test_no_wild_multipliers_behaves_exactly_as_before`).
+
+**Explicitly flagged as still unconfirmed**: when 2+ entries are present (more than one wild
+landed in the spin), `active_wild_multiplier()` multiplies their values together — this
+combination rule (vs. additive, vs. only the highest value applying) has no supporting sample
+yet, since no captured spin has had two wilds contribute to the same winning way. Documented
+as an ASSUMPTION in the function's own docstring; revisit if such a sample surfaces.
+
+Added `tests/math/test_megaways_calculator_unit.py` — four pure unit tests (no browser) that
+lock in: the exact D-025 scenario (wild-involved way doubles, plain way of the same
+symbol/count doesn't), a 0-entry being treated as no-op, and unchanged behavior when
+`wild_multipliers` is omitted. All four pass.
+
+Updated every live-test call site that compares `total_win(evaluate(...))` against
+`result.total_win` to pass `wild_multipliers=result.wild_multipliers` (previously none of them
+did, so this gap silently affected ALL of them, not just the one PS-MTH case that happened to
+catch it): `test_large_win_display.py`, `test_win_evaluation.py` (Functional sheet — a
+one-line parameter addition to keep an existing assertion correct, not a rewrite of the
+sheet's logic), `test_symbol_win_amounts.py` (3 call sites), `test_transactions_and_idempotency.py`,
+`test_wild.py`, and `test_wild_and_feature_math.py` (also restored the full monetary
+`total_win` assertion there, previously scoped out specifically because of this gap — see that
+test's updated docstring for the residual multi-wild caveat). The two raw-dict feature-round
+callers (`test_raining_wild_mechanics.py`, `test_sticky_wild_mechanics.py`) were left
+unchanged since neither asserts monetary equality, so the gap never affected them.
+
+Verified: all 244 tests still collect without error after the signature change; the 4 new
+unit tests pass. Full live re-validation of every updated call site was not run in this pass
+(most require a wild-involved win, which — per D-019 — cannot be forced and is rare/random to
+hit live); the unit tests are the primary correctness evidence until a live wild-involved win
+is next captured naturally.
+
+**Review**: this closes D-025 as FIXED. CLAUDE.md's calculator section, which described this
+as a confirmed unfixed bug, needs updating to match.

@@ -27,7 +27,7 @@ def test_win_transaction_amount_matches_calculator(game_ready):
     pay_table = game_ready.get_init_data().game_info.pay_table
     result = game_ready.spin_and_wait()
     assert result.total_win > 0
-    ways = evaluate(result.reel_view, pay_table, result.bet_amount_used)
+    ways = evaluate(result.reel_view, pay_table, result.bet_amount_used, wild_multipliers=result.wild_multipliers)
     assert result.total_win == total_win(ways)
 
 

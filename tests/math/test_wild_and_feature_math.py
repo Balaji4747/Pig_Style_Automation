@@ -2,7 +2,7 @@ from decimal import Decimal
 
 import pytest
 
-from utils.megaways_calculator import evaluate
+from utils.megaways_calculator import evaluate, total_win
 
 # PS-MTH-027/028/031 (a specific wild multiplier VALUE: x1/x2/x3 only) are
 # not forceable — the cheat tool's "<n> OAK WC" options control wild COUNT,
@@ -24,29 +24,29 @@ def test_wild_involved_win_has_consistent_structure(game_ready):
     symbol on the same reel): forces multiple wilds and checks structural
     correctness of the resulting win lines (ways counted correctly, wild
     count tracked per way, no pay below 3-of-a-kind) via the proven
-    ways/structure logic in utils.megaways_calculator.
-
-    Scope note: this does NOT assert exact total_win equality against the
-    calculator when a win line's wild_count > 0 — the calculator's
-    multiplier handling for wild-involved wins is explicitly flagged as an
-    unvalidated ASSUMPTION (no wild-involved sample existed when it was
-    built; ways with differing wild multipliers may need a per-way, not
-    per-spin, multiplier that evaluate() doesn't model). Asserting monetary
-    exactness here risks reporting a calculator gap as a product defect.
-    See DECISIONS.md. Ref: math file wild weight table (reels 2-5 only)."""
+    ways/structure logic in utils.megaways_calculator, plus exact monetary
+    equality now that the calculator applies the active wild multiplier
+    per-way (D-025/D-035). Note: the multi-wild combination rule (when 2+
+    wilds land in the same spin) is still an unvalidated ASSUMPTION in
+    `active_wild_multiplier()` — see that function's docstring — so a
+    monetary mismatch here specifically (not a structural one) could still
+    point at that rule being wrong rather than a product defect; check
+    DECISIONS.md D-025/D-035 before concluding either way.
+    Ref: math file wild weight table (reels 2-5 only)."""
     game_ready.force_next_spin("3 OAK WC")
     pay_table = game_ready.get_init_data().game_info.pay_table
     result = game_ready.spin_and_wait()
 
-    # Structural check independent of multiplier value: ways/positions must
-    # match the calculator's (multiplier-agnostic) structural computation.
-    computed_ways = evaluate(result.reel_view, pay_table, result.bet_amount_used)
+    computed_ways = evaluate(
+        result.reel_view, pay_table, result.bet_amount_used, wild_multipliers=result.wild_multipliers
+    )
     computed_structure = {(w.symbol, w.count, w.positions, w.wild_count) for w in computed_ways}
     server_structure = {
         (wl.symbol, wl.consecutive_count, wl.winning_position, wl.wild_count) for wl in result.win_lines
     }
     assert computed_structure == server_structure
     assert all(wl.consecutive_count >= 3 for wl in result.win_lines)
+    assert total_win(computed_ways) == result.total_win
 
     # Confirmed reel scope from the math file: WC weight is 0 on reels 1/6.
     assert result.reel_view[0].count("WC") == 0

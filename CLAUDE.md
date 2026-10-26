@@ -297,28 +297,29 @@ the math file: `BG Calc!K19` hardcodes `Bet=20`; the QA team's own
 `OBS-04` states "wins are multiplied by the number of ways (product of
 symbol counts per reel)".
 
-**CONFIRMED BUG (25 Oct 2026, D-025): `evaluate()` does NOT apply the wild
-multiplier per-way, and under-calculates `total_win` whenever a wild
-participates in a win.** The first wild-involved winning spin this project
-has captured (an unforced real spin — see D-019) showed the server paying a
+**FIXED (26 Oct 2026, D-025/D-035): `evaluate()` now applies the active wild
+multiplier per-way.** The first wild-involved winning spin this project
+captured (an unforced real spin — see D-019) showed the server paying a
 wild-involved way (`wild_count=1`) exactly double the base paytable amount
-(`0.50 -> 1.00`, consistent with the response's own `wild_multipliers`
-field), while `evaluate()` computed the same `0.50` for that way as for the
-two non-wild ways in the same spin, undercounting `total_win` by the
-multiplier difference (`Decimal('1.50')` vs. the server's real
-`Decimal('2')`). Base way-reconstruction (symbol/count/positions) was
-exactly correct — only the per-way wild scaling is missing. **Left
-unfixed per the standing instruction not to modify this file's logic
-without discussion** — any test comparing `total_win` to this oracle will
-intermittently fail whenever an unforced spin happens to land a
-wild-involved win. See DECISIONS.md D-025 for the full evidence (the
-captured spin's exact field values are in that entry; the raw JSON itself
-was not persisted to `docs/samples/` — only the parsed `SpinResult` from
-the test's own assertion-failure output was captured, so a verbatim raw
-sample still needs capturing the next time a wild-involved win occurs
-live). Fixing this (scale a way's win by the active wild multiplier
-whenever `wild_count > 0`) is the single highest-value remaining gap in
-this calculator.
+(`0.50 -> 1.00`), consistent with the response's own `wild_multipliers`
+field — `evaluate()` previously ignored this entirely, undercounting
+`total_win` whenever a wild participated in a win. **Fixed with explicit
+user sign-off** (per the standing "never modify without discussion" rule):
+`evaluate()` now takes an optional `wild_multipliers` keyword (the raw
+`result.wild_multipliers` list) and scales any way with `wild_count > 0` by
+`active_wild_multiplier()`'s combined value — confirmed from the one real
+sample that the LAST element of each `[_, _, value]` entry is the real
+multiplier value, not an index, and that `0` means "no multiplier" (1x),
+not a real zero-value multiplier. Omitting the parameter reproduces the
+old (pre-fix) behavior exactly, so this is backward compatible.
+
+**Still unconfirmed**: the combination rule when 2+ wilds land in the same
+spin (currently multiplies their values together — an ASSUMPTION, see the
+function's own docstring) has no supporting sample yet. Revisit if one
+surfaces. Locked in with 4 pure unit tests in
+`tests/math/test_megaways_calculator_unit.py` (no browser needed) — see
+DECISIONS.md D-035 for the full before/after evidence and which live test
+call sites were updated to pass `wild_multipliers` through.
 
 **Deliberately out of scope**: no max-win-cap logic. The math file only
 reports *uncapped* theoretical "Max Exposure" (up to 1,674,912 credits for

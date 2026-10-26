@@ -53,7 +53,7 @@ def test_symbol_win_amount_matches_calculator(game_ready, outcome):
     pay_table = game_ready.get_init_data().game_info.pay_table
     result = game_ready.spin_and_wait()
 
-    ways = evaluate(result.reel_view, pay_table, result.bet_amount_used)
+    ways = evaluate(result.reel_view, pay_table, result.bet_amount_used, wild_multipliers=result.wild_multipliers)
     assert result.total_win == total_win(ways)
 
 
@@ -73,7 +73,7 @@ def test_symbol_win_amount_at_reduced_bet(game_ready):
     result = game_ready.spin_and_wait()
     assert result.bet == Decimal("0.20")
 
-    ways = evaluate(result.reel_view, pay_table, result.bet_amount_used)
+    ways = evaluate(result.reel_view, pay_table, result.bet_amount_used, wild_multipliers=result.wild_multipliers)
     assert result.total_win == total_win(ways)
 
     # Resetting the bet is cleanup, not part of this test's claim (already
@@ -106,7 +106,7 @@ def test_symbol_win_amount_at_min_bet_rounding(game_ready, init_data):
     pay_table = game_ready.get_init_data().game_info.pay_table
     result = game_ready.spin_and_wait()
 
-    ways = evaluate(result.reel_view, pay_table, result.bet_amount_used)
+    ways = evaluate(result.reel_view, pay_table, result.bet_amount_used, wild_multipliers=result.wild_multipliers)
     assert result.total_win == total_win(ways)
 
     # See D-025: resetting the bet is cleanup, not part of this test's

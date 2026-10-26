@@ -46,7 +46,7 @@ def test_wild_substitution_and_scatter_count_validated_via_calculator(game_ready
         game_ready.force_next_spin(outcome)
         result = game_ready.spin_and_wait()
 
-        computed = evaluate(result.reel_view, paytable, result.bet_amount_used)
+        computed = evaluate(result.reel_view, paytable, result.bet_amount_used, wild_multipliers=result.wild_multipliers)
         assert total_win(computed) == result.total_win
         server_set = {
             (wl.symbol, wl.consecutive_count, wl.winning_position, wl.wild_count, wl.win_amount)
