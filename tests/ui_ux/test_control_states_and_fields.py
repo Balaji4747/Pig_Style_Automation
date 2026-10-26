@@ -83,10 +83,18 @@ def test_balance_field_updates_on_debit_and_credit(game_ready):
     Ref: GR-19."""
     from decimal import Decimal
 
-    game_ready.force_next_spin("3 OAK AA")
-    balance_before = game_ready.get_init_data().player_info.balance
-    result = game_ready.spin_and_wait()
-    assert result.total_win > 0
+    # force_next_spin() is confirmed unreliable in this environment
+    # (CLAUDE.md D-019) — retry until a genuine win lands rather than
+    # trusting the cheat tool on the first try.
+    result = None
+    for _ in range(8):
+        balance_before = game_ready.get_init_data().player_info.balance
+        game_ready.force_next_spin("3 OAK AA")
+        candidate = game_ready.spin_and_wait()
+        if candidate.total_win > 0:
+            result = candidate
+            break
+    assert result is not None, "No winning spin observed in 8 attempts"
 
     displayed = game_ready.get_displayed_balance_text().replace(",", "").replace("€", "").strip()
     assert Decimal(displayed) == result.balance
@@ -99,9 +107,17 @@ def test_win_field_shows_total_and_resets_next_spin(game_ready):
     reset on the next spin. Checked via the server response's own total_win
     across a winning then a losing spin (no confirmed dedicated "win field"
     PIXI node was located during recon to read directly). Ref: GR-25."""
-    game_ready.force_next_spin("3 OAK AA")
-    winning_result = game_ready.spin_and_wait()
-    assert winning_result.total_win > 0
+    # force_next_spin() is confirmed unreliable in this environment
+    # (CLAUDE.md D-019) — retry until a genuine win lands rather than
+    # trusting the cheat tool on the first try.
+    winning_result = None
+    for _ in range(8):
+        game_ready.force_next_spin("3 OAK AA")
+        candidate = game_ready.spin_and_wait()
+        if candidate.total_win > 0:
+            winning_result = candidate
+            break
+    assert winning_result is not None, "No winning spin observed in 8 attempts"
 
     losing_result = game_ready.spin_and_wait()
     # Not forced — the next spin's own total_win is whatever it is; the

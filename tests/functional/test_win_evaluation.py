@@ -1,6 +1,9 @@
 import pytest
 
+from utils.logger import get_logger
 from utils.megaways_calculator import evaluate, total_win
+
+log = get_logger(__name__)
 
 # The cheat tool only forces a symbol/count, not an exact reel layout, so we
 # can't reproduce the workbook's hand-picked boards (e.g. "BB on R2,R3,R4 but
@@ -15,6 +18,7 @@ FORCE_OUTCOMES_FOR_WINS = ["3 OAK AA", "4 OAK BB ", "5 OAK CC ", "3 OAK KK ", "4
 
 def _assert_calculator_matches_server(result, paytable) -> None:
     computed_ways = evaluate(result.reel_view, paytable, result.bet_amount_used, wild_multipliers=result.wild_multipliers)
+    log.info("Bet %s: server win %s, computed win %s, balance %s", result.bet, result.total_win, total_win(computed_ways), result.balance)
     assert total_win(computed_ways) == result.total_win
 
     server_set = {
@@ -51,11 +55,13 @@ def test_win_calculation_matches_server_across_forced_and_free_spins(game_ready,
     for outcome in FORCE_OUTCOMES_FOR_WINS:
         game_ready.force_next_spin(outcome)
         result = game_ready.spin_and_wait()
+        log.info("Forced outcome: %s", outcome)
         _assert_calculator_matches_server(result, paytable)
         checked_any_win = checked_any_win or bool(result.win_lines)
 
-    for _ in range(5):
+    for i in range(5):
         result = game_ready.spin_and_wait()
+        log.info("Unforced spin %s", i + 1)
         _assert_calculator_matches_server(result, paytable)
         checked_any_win = checked_any_win or bool(result.win_lines)
 
@@ -70,4 +76,5 @@ def test_paytable_pay_increases_with_oak_count(init_data):
         three, four, five, six = pays[2], pays[3], pays[4], pays[5]
         if six == 0:
             continue  # non-paying symbols (WC, BN)
+        log.info("%s: 3=%s 4=%s 5=%s 6=%s", symbol, three, four, five, six)
         assert three < four < five < six, f"{symbol}: pays not strictly increasing: {pays}"

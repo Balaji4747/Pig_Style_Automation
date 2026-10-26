@@ -22,24 +22,35 @@ def test_bet_transaction_is_a_single_debit(game_ready):
 @pytest.mark.test_case("PS-REG-133")
 def test_win_transaction_amount_matches_calculator(game_ready):
     """PS-STR-002: a win's credited amount must match the win-math oracle
-    exactly. Ref: GR-56."""
-    game_ready.force_next_spin("3 OAK AA")
+    exactly. The cheat tool is confirmed unreliable (D-019), so this retries
+    until an actual win is observed rather than assuming "3 OAK AA" forced
+    one on the first attempt. Ref: GR-56."""
     pay_table = game_ready.get_init_data().game_info.pay_table
-    result = game_ready.spin_and_wait()
-    assert result.total_win > 0
-    ways = evaluate(result.reel_view, pay_table, result.bet_amount_used, wild_multipliers=result.wild_multipliers)
-    assert result.total_win == total_win(ways)
+    for _ in range(5):
+        game_ready.force_next_spin("3 OAK AA")
+        result = game_ready.spin_and_wait()
+        if result.total_win > 0:
+            ways = evaluate(result.reel_view, pay_table, result.bet_amount_used, wild_multipliers=result.wild_multipliers)
+            assert result.total_win == total_win(ways)
+            return
+    pytest.fail("No winning spin observed in 5 attempts to validate the win-math oracle against")
 
 
 @pytest.mark.test_case("PS-STR-003")
 @pytest.mark.test_case("PS-REG-134")
 def test_zero_win_spin_still_closes_the_round(game_ready):
     """PS-STR-003: a non-winning spin must still close its round (no
-    dangling open round from a zero-win outcome). Ref: GR-56."""
-    game_ready.force_next_spin("FEATURE_MISS")
-    result = game_ready.spin_and_wait()
-    assert result.closed
-    assert result.total_win == 0
+    dangling open round from a zero-win outcome). The cheat tool is
+    confirmed unreliable (D-019), so this retries until an actual zero-win
+    spin is observed rather than assuming "FEATURE_MISS" forced one. Ref:
+    GR-56."""
+    for _ in range(5):
+        game_ready.force_next_spin("FEATURE_MISS")
+        result = game_ready.spin_and_wait()
+        if result.total_win == 0:
+            assert result.closed
+            return
+    pytest.fail("No zero-win spin observed in 5 attempts to validate round closure against")
 
 
 @pytest.mark.test_case("PS-STR-004")

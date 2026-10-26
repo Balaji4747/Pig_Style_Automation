@@ -2,6 +2,10 @@ from decimal import Decimal
 
 import pytest
 
+from utils.logger import get_logger
+
+log = get_logger(__name__)
+
 
 @pytest.mark.functional
 @pytest.mark.regression
@@ -14,9 +18,9 @@ def test_game_launches_to_base_game_with_correct_initial_state(game_ready, init_
     assert game_ready.get_pixi_node(game_ready.SPIN_BUTTON_NODE)["width"] > 0  # Play button present/enabled
 
     displayed_bet = game_ready.get_displayed_bet_text()
-    assert Decimal(displayed_bet.lstrip("€")) == init_data.player_info.default_bet
-
     displayed_balance = game_ready.get_displayed_balance_text().lstrip("€").replace(",", "")
+    log.info("Displayed bet: %s, displayed balance: %s", displayed_bet, displayed_balance)
+    assert Decimal(displayed_bet.lstrip("€")) == init_data.player_info.default_bet
     assert Decimal(displayed_balance) == init_data.player_info.balance
 
 
@@ -40,6 +44,8 @@ def test_splash_screen_dismisses_to_base_game_when_shown(page, config, network_s
     if not game_page.is_splash_visible():
         pytest.skip("Splash was skipped this session (server/preference-dependent) — nothing to dismiss")
 
+    log.info("Splash visible, dismissing")
     game_page.dismiss_splash(timeout_ms=config["timeouts"]["game_ready_ms"])
+    log.info("Splash dismissed, splash visible now: %s", game_page.is_splash_visible())
     assert not game_page.is_splash_visible()
     assert game_page.wait_for(game_page.is_base_game_ready, timeout_ms=config["timeouts"]["game_ready_ms"]) is None

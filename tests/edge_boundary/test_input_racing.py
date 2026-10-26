@@ -68,11 +68,19 @@ def test_click_during_win_presentation_does_not_double_credit(game_ready):
     whether the presentation is skipped or not is this game's own choice
     (not hard-asserted), but the balance math across both rounds must add
     up exactly. Ref: GR-22."""
-    game_ready.force_next_spin("3 OAK AA")
-    balance_before = game_ready.get_init_data().player_info.balance
-    exchange = game_ready.spin()
-    first = parse_spin_response(exchange.response_body)
-    assert first.total_win > 0
+    # force_next_spin() is confirmed unreliable in this environment
+    # (CLAUDE.md D-019) — retry until a genuine win lands rather than
+    # trusting the cheat tool on the first try.
+    first = None
+    for _ in range(8):
+        balance_before = game_ready.get_init_data().player_info.balance
+        game_ready.force_next_spin("3 OAK AA")
+        exchange = game_ready.spin()
+        candidate = parse_spin_response(exchange.response_body)
+        if candidate.total_win > 0:
+            first = candidate
+            break
+    assert first is not None, "No winning spin observed in 8 attempts"
 
     # Try to start a second round immediately, while the win presentation
     # would normally still be playing (no settle wait here, unlike spin()).

@@ -42,7 +42,10 @@ class GamePage(BasePage):
     # docstring) — used as the "definitely on the base game" signal, since
     # the splash is sometimes skipped by the server entirely (session/
     # preference-dependent) and never appears at all.
-    BASE_GAME_READY_NODE = "megawaysText"
+    # Live node is named "Megaways" (confirmed 26 Oct 2026 via a full PIXI
+    # scene-graph dump — "megawaysText" never existed in this build and made
+    # is_base_game_ready() always return False, independent of session state).
+    BASE_GAME_READY_NODE = "Megaways"
     # "CHOOSE YOUR FREE SPINS FEATURE" title and the post-feature
     # "Congratulations" popup — used to auto-recover from any spin that
     # triggers a feature (forced outcomes can trigger one incidentally,
@@ -412,6 +415,20 @@ class GamePage(BasePage):
 
     def get_displayed_balance_text(self) -> str:
         return self.get_sibling_value_text("titleText", "BALANCE", "valueText")
+
+    def wait_for_displayed_balance_to_match(self, expected: Decimal, timeout_ms: int = 15_000) -> None:
+        """Polls the displayed balance until it matches `expected` (the API
+        balance). On a winning spin, spin_and_wait() returns as soon as the
+        /spin response arrives, but the canvas balance text only updates once
+        the win rollup animation finishes crediting it — reading the
+        displayed balance immediately after a win can catch it mid-rollup,
+        still showing the pre-win amount."""
+
+        def matches() -> bool:
+            displayed = self.get_displayed_balance_text().lstrip("€").replace(",", "")
+            return Decimal(displayed) == expected
+
+        self.wait_for(matches, timeout_ms=timeout_ms)
 
     def get_displayed_bet_text(self) -> str:
         return self.get_sibling_value_text("titleText", "BET", "valueText")

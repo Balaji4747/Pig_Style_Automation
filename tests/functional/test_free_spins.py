@@ -1,6 +1,9 @@
 import pytest
 
 from utils.api_client import parse_spin_response
+from utils.logger import get_logger
+
+log = get_logger(__name__)
 
 
 @pytest.mark.functional
@@ -21,6 +24,7 @@ def test_free_spins_choice_screen_offers_correct_spin_counts(game_ready):
     game_ready.force_next_spin("3 OAK BN")
     exchange = game_ready.network_spy.wait_for_response("spin", trigger, timeout_ms=10_000)
     result = parse_spin_response(exchange.response_body)
+    log.info("Feature triggered: %s", result.is_feature_triggered)
     assert result.is_feature_triggered
 
     game_ready.wait_for(
@@ -28,6 +32,7 @@ def test_free_spins_choice_screen_offers_correct_spin_counts(game_ready):
     )
     sticky_count = game_ready.get_displayed_integer_near_label("titleText", "STICKY WILDS")
     raining_count = game_ready.get_displayed_integer_near_label("titleText", "RAINING WILDS")
+    log.info("Sticky Wilds spins offered: %s, Raining Wilds spins offered: %s", sticky_count, raining_count)
     assert sticky_count == 7
     assert raining_count == 15
 
@@ -64,6 +69,7 @@ def test_free_spins_play_at_triggering_bet_with_no_per_spin_debit(game_ready):
     game_ready.force_next_spin("3 OAK BN")
     exchange = game_ready.network_spy.wait_for_response("spin", trigger, timeout_ms=10_000)
     triggering_result = parse_spin_response(exchange.response_body)
+    log.info("Triggering spin bet: %s", triggering_result.bet)
     assert triggering_result.bet == 2
 
     game_ready.wait_for(
@@ -77,6 +83,7 @@ def test_free_spins_play_at_triggering_bet_with_no_per_spin_debit(game_ready):
 
     game_ready.network_spy.clear("feature")
     balance_before_feature = game_ready.get_balance()
+    log.info("Balance before feature: %s", balance_before_feature)
     game_ready.play_feature_spins_to_completion()
 
     for exchange in game_ready.network_spy.all("feature"):
@@ -86,7 +93,9 @@ def test_free_spins_play_at_triggering_bet_with_no_per_spin_debit(game_ready):
     game_ready.dismiss_congrats_popup_if_present()
     game_ready.wait_for(game_ready.is_base_game_ready, timeout_ms=15_000)
     game_ready.wait_for_loading_overlay_to_clear(timeout_ms=60_000)
-    assert game_ready.get_balance() >= balance_before_feature
+    balance_after_feature = game_ready.get_balance()
+    log.info("Feature spins played: %s, balance after feature: %s", len(game_ready.network_spy.all("feature")), balance_after_feature)
+    assert balance_after_feature >= balance_before_feature
 
     bet_panel = game_ready.open_bet_panel()
     bet_panel.select_bet("1.00")

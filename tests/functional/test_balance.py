@@ -2,6 +2,11 @@ from decimal import Decimal
 
 import pytest
 
+from utils.logger import get_logger
+from utils.megaways_calculator import evaluate, total_win
+
+log = get_logger(__name__)
+
 
 @pytest.mark.functional
 @pytest.mark.regression
@@ -11,8 +16,10 @@ def test_balance_debited_by_exactly_the_bet_amount(game_ready):
     """PS-FUN-020: the balance changes by exactly (win - bet) for a single
     paid spin, i.e. the bet is debited exactly once regardless of outcome."""
     balance_before = game_ready.get_balance()
+    log.info("Balance before: %s", balance_before)
     result = game_ready.spin_and_wait()
     expected_balance = balance_before - result.bet + result.total_win
+    log.info("Bet: %s, win: %s, balance after: %s", result.bet, result.total_win, result.balance)
     assert result.balance == expected_balance
 
 
@@ -20,16 +27,25 @@ def test_balance_debited_by_exactly_the_bet_amount(game_ready):
 @pytest.mark.regression
 @pytest.mark.sanity
 @pytest.mark.test_case("PS-REG-009")
-def test_base_game_win_credited_to_balance(game_ready):
-    """PS-FUN-021: a base game win is credited to the balance. Forces "3 OAK
-    AA" (AA on reels 1-3, 1 way) at the default bet (1.00) — math pay:
-    15 credits * (1.00 / 20) = 0.75."""
-    balance_before = game_ready.get_balance()
-    game_ready.force_next_spin("3 OAK AA")
-    result = game_ready.spin_and_wait()
-
-    assert result.total_win == Decimal("0.75")
-    assert result.balance == balance_before - result.bet + result.total_win
+def test_base_game_win_credited_to_balance(game_ready, init_data):
+    """PS-FUN-021: a base game win is credited to the balance. Attempts to
+    force "3 OAK AA" to bias toward a win, but never assumes the cheat tool
+    actually forced it (confirmed unreliable, D-019) — validates whatever
+    the spin actually returns by recomputing the expected win from the real
+    board via megaways_calculator.evaluate() instead of a hardcoded value."""
+    paytable = init_data.game_info.pay_table
+    for attempt in range(4):
+        balance_before = game_ready.get_balance()
+        log.info("Attempt %s: balance before %s", attempt + 1, balance_before)
+        game_ready.force_next_spin("3 OAK AA")
+        result = game_ready.spin_and_wait()
+        log.info("Win: %s, balance after: %s", result.total_win, result.balance)
+        if result.total_win > 0:
+            computed = evaluate(result.reel_view, paytable, result.bet_amount_used, wild_multipliers=result.wild_multipliers)
+            assert total_win(computed) == result.total_win
+            assert result.balance == balance_before - result.bet + result.total_win
+            return
+    pytest.fail("No winning spin observed in 4 attempts to validate win-credit behavior against")
 
 
 @pytest.mark.functional
@@ -41,7 +57,12 @@ def test_displayed_balance_matches_api_balance_after_each_round(game_ready):
     5 for suite run time (there's no separate "wallet backend" to compare
     against in this test environment — the game's own API response is the
     only source of truth available, so this validates UI/API sync)."""
-    for _ in range(5):
+    for i in range(5):
         result = game_ready.spin_and_wait()
+        # On a win, the displayed balance only catches up once the win rollup
+        # animation finishes crediting it — wait for it rather than assuming
+        # it already matches the API balance the instant spin_and_wait() returns.
+        game_ready.wait_for_displayed_balance_to_match(result.balance)
         displayed = Decimal(game_ready.get_displayed_balance_text().lstrip("€").replace(",", ""))
+        log.info("Spin %s: win %s, API balance %s, displayed balance %s", i + 1, result.total_win, result.balance, displayed)
         assert displayed == result.balance

@@ -156,10 +156,18 @@ def test_viewport_rotation_during_win_presentation_keeps_correct_values(game_rea
     landscape = {"width": viewport["width"], "height": viewport["height"]}
     portrait = {"width": viewport["height"], "height": viewport["width"]}
 
-    game_ready.force_next_spin("3 OAK AA")
-    exchange = game_ready.spin()
-    result = parse_spin_response(exchange.response_body)
-    assert result.total_win > 0, "PS-INT-016 requires a winning spin to test rotation during win presentation"
+    # force_next_spin() is confirmed unreliable in this environment
+    # (CLAUDE.md D-019) — retry until a genuine win lands rather than
+    # trusting the cheat tool on the first try.
+    result = None
+    for _ in range(8):
+        game_ready.force_next_spin("3 OAK AA")
+        exchange = game_ready.spin()
+        candidate = parse_spin_response(exchange.response_body)
+        if candidate.total_win > 0:
+            result = candidate
+            break
+    assert result is not None, "No winning spin observed in 8 attempts to test rotation during win presentation"
 
     game_ready.page.set_viewport_size(portrait)
     game_ready.page.wait_for_timeout(1_000)

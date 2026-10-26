@@ -1,6 +1,9 @@
 import pytest
 
+from utils.logger import get_logger
 from utils.megaways_calculator import evaluate, total_win
+
+log = get_logger(__name__)
 
 
 @pytest.mark.functional
@@ -17,6 +20,7 @@ def test_wild_never_appears_on_reel_1_or_6(game_ready):
     for outcome in outcomes:
         game_ready.force_next_spin(outcome)
         result = game_ready.spin_and_wait()
+        log.info("Outcome %s: reel 1 WC count %s, reel 6 WC count %s", outcome, result.reel_view[0].count("WC"), result.reel_view[5].count("WC"))
         assert result.reel_view[0].count("WC") == 0
         assert result.reel_view[5].count("WC") == 0
         checked_any_wild = checked_any_wild or any("WC" in reel for reel in result.reel_view)
@@ -47,6 +51,7 @@ def test_wild_substitution_and_scatter_count_validated_via_calculator(game_ready
         result = game_ready.spin_and_wait()
 
         computed = evaluate(result.reel_view, paytable, result.bet_amount_used, wild_multipliers=result.wild_multipliers)
+        log.info("Outcome %s: server win %s, computed win %s, wild multipliers %s", outcome, result.total_win, total_win(computed), result.wild_multipliers)
         assert total_win(computed) == result.total_win
         server_set = {
             (wl.symbol, wl.consecutive_count, wl.winning_position, wl.wild_count, wl.win_amount)

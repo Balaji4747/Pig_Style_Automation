@@ -2,6 +2,28 @@ from decimal import Decimal
 
 import pytest
 
+from utils.logger import get_logger
+
+log = get_logger(__name__)
+
+
+def _spin_until_pure_three_oak_aa(game_ready, max_attempts: int = 8):
+    """force_next_spin("3 OAK AA") is confirmed unreliable in this
+    environment (CLAUDE.md D-019) — it doesn't guarantee a pure 3-OAK AA win
+    actually lands, so retry until one genuinely does rather than trusting
+    the cheat tool on the first try."""
+    for _ in range(max_attempts):
+        game_ready.force_next_spin("3 OAK AA")
+        result = game_ready.spin_and_wait()
+        if (
+            len(result.win_lines) == 1
+            and result.win_lines[0].symbol == "AA"
+            and result.win_lines[0].consecutive_count == 3
+            and result.win_lines[0].wild_count == 0
+        ):
+            return result
+    return None
+
 
 @pytest.mark.functional
 @pytest.mark.regression
@@ -28,14 +50,17 @@ def test_paytable_values_scale_linearly_with_bet(game_ready, init_data):
         panel.select_bet(f"{bet:.2f}")
         panel.confirm()
 
-        game_ready.force_next_spin("3 OAK AA")
-        result = game_ready.spin_and_wait()
+        result = _spin_until_pure_three_oak_aa(game_ready)
+        assert result is not None, f"No pure 3-OAK AA win observed at bet {bet} in 8 attempts"
+        log.info("Bet: %s, win: %s", bet, result.total_win)
         assert result.bet == bet
         wins[bet] = result.total_win
 
     raw_pay = init_data.game_info.pay_table["AA"][2]  # 3-OAK credits
     for bet in bets:
-        assert wins[bet] == (raw_pay * bet / Decimal(20)).quantize(Decimal("0.01"))
+        expected = (raw_pay * bet / Decimal(20)).quantize(Decimal("0.01"))
+        log.info("Bet %s: expected win %s, actual win %s", bet, expected, wins[bet])
+        assert wins[bet] == expected
 
     panel = game_ready.open_bet_panel()
     panel.select_bet(f"{init_data.player_info.default_bet:.2f}")
