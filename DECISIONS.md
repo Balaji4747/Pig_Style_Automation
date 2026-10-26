@@ -1114,3 +1114,30 @@ duration). Not re-classified as a product defect — a ~26s control-disable wind
 while long, isn't inherently wrong without knowing the intended UX spec, and no workbook row
 claims a maximum re-enable time. Worth a note to the team if this duration seems surprising to
 them, but not asserted against here since no documented expectation exists to check it against.
+
+## D-037: QA environment session tokens expire well before a full-suite run can complete — full runs must be split into per-sheet batches, each with a fresh token
+
+Two consecutive attempts to run the entire suite (`tests/`) end-to-end against a single
+`config/env.yaml` token both produced the same result: **1 passed-equivalent test, 6 passed,
+57 skipped, 180 errors**, each run taking ~2h38-39m. Initially suspected as a possible test
+framework or product issue (180 errors all showing the identical "base game never becomes
+ready" timeout), but confirmed via a live screenshot taken immediately after the second run:
+the game's own DOM shows `"Your session has expired. Please close this window and log in
+again to continue." Error Code: 2300` — a genuine platform-level session-expiry screen, not a
+test bug. A separate check on the FIRST run's token showed the same thing via the raw init API
+response instead (`"message": "Your session has expired. Please relogin"`, statusCode 500).
+
+**Root cause**: this environment's session tokens have a lifetime well under the ~2.5+ hours
+a full end-to-end suite run takes. The first test or two in each run genuinely passed/loaded
+correctly (confirmed via an early failure screenshot showing a fully rendered, playable game
+with a real balance) — the token simply expired partway through, and every fixture setup after
+that point failed identically for the rest of the run. This is **not** 180 distinct bugs; it's
+one infrastructure constraint hit twice.
+
+**Decision (user-directed)**: going forward, run the suite in per-sheet batches (matching the
+project's existing PS-INT/PS-ERR/PS-STR/PS-MTH/PS-FEA/PS-EDG/PS-UI/PS-CMP/PS-REG breakdown),
+requesting a fresh token before each batch, rather than attempting one long end-to-end run.
+
+**Review**: ENVIRONMENT-BLOCKED / infrastructure constraint, not a product or test-code defect.
+Worth raising with the team if longer-lived tokens are available for automated QA runs — would
+remove the need for per-sheet batching and repeated manual token refreshes.
