@@ -13,7 +13,10 @@ log = get_logger(__name__)
 def test_wild_never_appears_on_reel_1_or_6(game_ready):
     """PS-FUN-045: Wild (WC) only appears on reels 2-5 in the base game.
     Reduced from the workbook's 500-spin sample to a smaller mix of forced
-    wild-heavy outcomes plus free spins for suite run time."""
+    wild-heavy outcomes plus free spins for suite run time.
+
+    - Force a mix of wild-heavy outcomes
+    - For each, assert reel 1 and reel 6 contain no Wild symbol"""
     outcomes = ["1 OAK WC", "2 OAK WC", "3 OAK WC", "4 OAK WC"]
     checked_any_wild = False
 
@@ -43,7 +46,12 @@ def test_wild_substitution_and_scatter_count_validated_via_calculator(game_ready
     Validated the same way as win_evaluation: force wild-heavy outcomes and
     reproduce the server's winLines exactly with
     utils.megaways_calculator.evaluate() (which treats WC as a substitute
-    for any paying symbol, never for BN)."""
+    for any paying symbol, never for BN).
+
+    - Force wild-heavy outcomes ("3 OAK WC", "4 OAK WC")
+    - Recompute wins from the real board via the calculator
+    - Assert computed win lines exactly match the server's win lines
+    - Assert scatter count equals the number of reels containing BN"""
     paytable = init_data.game_info.pay_table
 
     for outcome in ["3 OAK WC", "4 OAK WC"]:

@@ -14,7 +14,11 @@ log = get_logger(__name__)
 def test_auto_spin_plays_exact_count_then_stops(game_ready):
     """PS-FUN-072: Auto Spin plays exactly the selected number of spins then
     stops automatically. Uses the smallest available count (5) for suite
-    run time."""
+    run time.
+
+    - Open Auto Spin menu, select 5 spins, start it
+    - Poll spin count until it stops increasing (Auto Spin finished)
+    - Assert exactly 5 spins fired"""
     balance_before = game_ready.get_balance()
     log.info("Balance before: %s", balance_before)
 
@@ -51,7 +55,11 @@ def test_auto_spin_plays_exact_count_then_stops(game_ready):
 @pytest.mark.test_case("PS-REG-035")
 def test_auto_spin_stop_ends_after_current_round(game_ready):
     """PS-FUN-074: pressing Stop ends Auto Spin after the current round
-    completes; no further rounds start."""
+    completes; no further rounds start.
+
+    - Start a 25-spin Auto Spin run
+    - Wait for at least 2 spins, then click Stop
+    - Assert no further spins fire after Stop"""
     balance_before = game_ready.get_balance()
     log.info("Balance before: %s", balance_before)
 
@@ -79,7 +87,10 @@ def test_auto_spin_stop_ends_after_current_round(game_ready):
 @pytest.mark.regression
 def test_auto_spin_cancel_does_not_start_spins(game_ready):
     """PS-FUN-075: Cancel in the Auto Spin menu closes it without starting
-    any spins or debiting."""
+    any spins or debiting.
+
+    - Open Auto Spin menu, select 25 spins, click Cancel instead of Start
+    - Assert zero spins fired and balance is unchanged"""
     balance_before = game_ready.get_balance()
     log.info("Balance before: %s", balance_before)
 
@@ -100,7 +111,11 @@ def test_auto_spin_cancel_does_not_start_spins(game_ready):
 @pytest.mark.functional
 @pytest.mark.regression
 def test_bet_panel_does_not_open_during_auto_spin(game_ready):
-    """PS-FUN-079: bet controls are disabled during Auto Spin."""
+    """PS-FUN-079: bet controls are disabled during Auto Spin.
+
+    - Start a 5-spin Auto Spin run
+    - Mid-run, try to open the Bet panel
+    - Assert it stays closed, then stop Auto Spin"""
     balance_before = game_ready.get_balance()
     log.info("Balance before: %s", balance_before)
 

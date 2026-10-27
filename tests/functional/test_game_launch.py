@@ -13,7 +13,10 @@ log = get_logger(__name__)
 @pytest.mark.test_case("PS-REG-001")
 def test_game_launches_to_base_game_with_correct_initial_state(game_ready, init_data):
     """PS-FUN-001: game launches, lands on the base game, and the initial
-    state (reels, bet, balance, win) is correct."""
+    state (reels, bet, balance, win) is correct.
+
+    - Assert the game is loaded and the spin button is present/enabled
+    - Assert displayed bet and balance match the init API response"""
     assert game_ready.is_loaded()
     assert game_ready.get_pixi_node(game_ready.SPIN_BUTTON_NODE)["width"] > 0  # Play button present/enabled
 
@@ -30,7 +33,11 @@ def test_splash_screen_dismisses_to_base_game_when_shown(page, config, network_s
     """PS-FUN-002: when the splash screen appears, it dismisses to the base
     game. The splash is sometimes skipped entirely by the server
     (session/preference-dependent, see CLAUDE.md) — this test only asserts
-    the dismiss behaviour when a splash actually shows."""
+    the dismiss behaviour when a splash actually shows.
+
+    - Load the game; skip the test if no splash appears this session
+    - Dismiss the splash
+    - Assert it's gone and the base game is ready"""
     from pages.game_page import GamePage
 
     game_page = GamePage(page, network_spy)

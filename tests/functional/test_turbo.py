@@ -14,7 +14,11 @@ def test_turbo_does_not_change_results_or_balance(game_ready):
     time. (Turbo's own visual on/off state isn't asserted — toggling it had
     no detectable scene-graph signal in testing; this validates the claim
     that actually matters, outcome integrity, via the same balance/win
-    arithmetic check used elsewhere.)"""
+    arithmetic check used elsewhere.)
+
+    - Enable Turbo, play 8 spins
+    - Assert balance math (before - bet + win) holds for every spin
+    - Disable Turbo afterward"""
     game_ready.toggle_turbo()
     log.info("Turbo enabled")
     for i in range(8):

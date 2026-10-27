@@ -14,7 +14,11 @@ def test_free_spins_choice_screen_offers_correct_spin_counts(game_ready):
     """PS-FUN-054: after a 3-Bonus trigger, both Sticky Wilds (7 spins) and
     Raining Wilds (15 spins) are offered — matching the math file
     (config/paytable.yaml's source) — and selecting one starts that
-    feature."""
+    feature.
+
+    - Force a Bonus trigger, wait for the choice screen
+    - Assert Sticky Wilds offers 7 spins and Raining Wilds offers 15
+    - Choose Sticky Wilds and drain the feature so later tests start clean"""
 
     def trigger():
         game_ready.wait_for_loading_overlay_to_clear()
@@ -56,7 +60,12 @@ def test_free_spins_play_at_triggering_bet_with_no_per_spin_debit(game_ready):
     """PS-FUN-056: Free Spins are played at the same bet as the triggering
     spin, and no bet is debited per Free Spin (balance only ever increases
     or stays the same during the feature, since wins — not debits — are the
-    only balance-changing event)."""
+    only balance-changing event).
+
+    - Set bet to 2.00, force a Bonus trigger, choose Sticky Wilds
+    - Play the feature to completion
+    - Assert every /feature response used bet 2.00 and balance never dropped
+    - Reset to bet 1.00 afterward"""
     bet_panel = game_ready.open_bet_panel()
     bet_panel.select_bet("2.00")
     bet_panel.confirm()

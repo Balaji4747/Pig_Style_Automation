@@ -13,7 +13,10 @@ log = get_logger(__name__)
 def test_reel_count_and_heights_stay_within_bounds(game_ready):
     """PS-FUN-005: 6 reels, each showing 2-7 symbols per spin. Reduced from
     the workbook's 50 spins to 10 for suite run time; still exercises the
-    reel-height distribution."""
+    reel-height distribution.
+
+    - Play 10 spins
+    - For each, check reel count is 6 and every reel height is 2-7"""
     for i in range(10):
         result = game_ready.spin_and_wait()
         heights = [len(reel) for reel in result.reel_view]
@@ -29,7 +32,10 @@ def test_reel_count_and_heights_stay_within_bounds(game_ready):
 @pytest.mark.test_case("PS-REG-003")
 def test_ways_counter_equals_product_of_reel_heights(game_ready):
     """PS-FUN-006: the displayed MEGAWAYS counter equals the product of the
-    symbol counts on all 6 reels for the spin that produced it."""
+    symbol counts on all 6 reels for the spin that produced it.
+
+    - Play one spin, compute ways from the real reel heights
+    - Assert reported ways and displayed ways both match the computed value"""
     result = game_ready.spin_and_wait()
     expected_ways = ways_count(result.reel_view)
     log.info("Reported ways: %s, computed ways: %s, displayed ways: %s", result.ways, expected_ways, game_ready.get_displayed_ways())
@@ -43,7 +49,10 @@ def test_maximum_ways_117649_when_all_reels_at_7(game_ready):
     """PS-FUN-007: forcing all reels to height 7 (via "6 OAK AA") shows
     117,649 ways. "6 OAK AA" doesn't *guarantee* a full board every time
     (confirmed: it influences but doesn't fully determine reel heights) —
-    retried a few times rather than failing on the first miss."""
+    retried a few times rather than failing on the first miss.
+
+    - Force "6 OAK AA", retry up to 4 times until all 6 reels are height 7
+    - Assert reported and displayed ways both equal 117,649"""
     for attempt in range(4):
         game_ready.force_next_spin("6 OAK AA")
         result = game_ready.spin_and_wait()

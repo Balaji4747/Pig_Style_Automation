@@ -13,7 +13,11 @@ log = get_logger(__name__)
 @pytest.mark.test_case("PS-REG-028")
 def test_buy_feature_interface_shows_cost_and_controls(game_ready, init_data):
     """PS-FUN-057: Buy Feature opens showing cost (100x total bet) and both
-    Confirm and Cancel."""
+    Confirm and Cancel.
+
+    - Open the Buy Feature panel at the default bet
+    - Assert shown cost is 100x bet and stake matches the current bet
+    - Cancel"""
     panel = game_ready.open_buy_feature()
     bet = init_data.player_info.default_bet
     expected_cost = bet * init_data.player_info.bb_bet_multiplier_settings.get("FG1", 100)
@@ -28,7 +32,12 @@ def test_buy_feature_interface_shows_cost_and_controls(game_ready, init_data):
 @pytest.mark.test_case("PS-REG-029")
 def test_buy_feature_cost_scales_with_bet(game_ready, init_data):
     """PS-FUN-058: Buy cost is exactly 100x the total bet at every bet
-    level tested (min, default, max)."""
+    level tested (min, default, max).
+
+    - For min, default, and max bet
+    - Select that bet, open Buy Feature panel
+    - Assert shown cost equals bet * 100, then cancel
+    - Reset to the default bet afterward"""
     multiplier = init_data.player_info.bb_bet_multiplier_settings.get("FG1", 100)
     for bet in (init_data.player_info.min_bet, init_data.player_info.default_bet, init_data.player_info.max_bet):
         bet_panel = game_ready.open_bet_panel()
@@ -49,7 +58,10 @@ def test_buy_feature_cost_scales_with_bet(game_ready, init_data):
 @pytest.mark.regression
 def test_cancelling_buy_feature_makes_no_debit(game_ready):
     """PS-FUN-060: cancelling the Buy interface makes no debit and returns
-    to the base game with the bet unchanged."""
+    to the base game with the bet unchanged.
+
+    - Open Buy Feature panel, click Cancel
+    - Assert balance and displayed bet are unchanged"""
     balance_before = game_ready.get_balance()
     bet_before = game_ready.get_displayed_bet_text()
     log.info("Balance before: %s, bet before: %s", balance_before, bet_before)

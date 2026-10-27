@@ -41,7 +41,12 @@ def test_paytable_values_scale_linearly_with_bet(game_ready, init_data):
     only true where no rounding occurs — at min bet (0.10), 15 * 0.10 / 20
     = 0.075 rounds to 0.08, so 0.08 / 0.75 != 0.10 / 1.00. The formula
     check below (with correct rounding) is the accurate version of this
-    assertion."""
+    assertion.
+
+    - For min, default, and max bet
+    - Retry forcing "3 OAK AA" until a pure 3-OAK win lands
+    - Assert the win equals bet * 3-OAK credits / 20, rounded half-up
+    - Reset to the default bet afterward"""
     bets = [init_data.player_info.min_bet, init_data.player_info.default_bet, init_data.player_info.max_bet]
     wins = {}
 

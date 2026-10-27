@@ -14,7 +14,10 @@ log = get_logger(__name__)
 @pytest.mark.test_case("PS-REG-008")
 def test_balance_debited_by_exactly_the_bet_amount(game_ready):
     """PS-FUN-020: the balance changes by exactly (win - bet) for a single
-    paid spin, i.e. the bet is debited exactly once regardless of outcome."""
+    paid spin, i.e. the bet is debited exactly once regardless of outcome.
+
+    - Record balance, play one spin
+    - Assert balance after == balance before - bet + win"""
     balance_before = game_ready.get_balance()
     log.info("Balance before: %s", balance_before)
     result = game_ready.spin_and_wait()
@@ -32,7 +35,11 @@ def test_base_game_win_credited_to_balance(game_ready, init_data):
     force "3 OAK AA" to bias toward a win, but never assumes the cheat tool
     actually forced it (confirmed unreliable, D-019) — validates whatever
     the spin actually returns by recomputing the expected win from the real
-    board via megaways_calculator.evaluate() instead of a hardcoded value."""
+    board via megaways_calculator.evaluate() instead of a hardcoded value.
+
+    - Try forcing "3 OAK AA", retry up to 4 times until a real win lands
+    - Recompute expected win from the actual board via the calculator
+    - Assert computed win matches server win and balance was credited"""
     paytable = init_data.game_info.pay_table
     for attempt in range(4):
         balance_before = game_ready.get_balance()
@@ -56,7 +63,11 @@ def test_displayed_balance_matches_api_balance_after_each_round(game_ready):
     API balance after every round. Reduced from the workbook's 10 rounds to
     5 for suite run time (there's no separate "wallet backend" to compare
     against in this test environment — the game's own API response is the
-    only source of truth available, so this validates UI/API sync)."""
+    only source of truth available, so this validates UI/API sync).
+
+    - Play 5 spins
+    - After each, wait for the displayed balance to catch up with the API balance
+    - Assert displayed balance equals API balance every round"""
     for i in range(5):
         result = game_ready.spin_and_wait()
         # On a win, the displayed balance only catches up once the win rollup

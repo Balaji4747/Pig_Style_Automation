@@ -48,7 +48,11 @@ def test_win_calculation_matches_server_across_forced_and_free_spins(game_ready,
     first non-matching/non-wild reel), PS-FUN-040 (ways = product of
     per-reel match counts), PS-FUN-041 (no pay below 3-of-a-kind),
     PS-FUN-042 (multiple symbol wins summed), PS-FUN-043 (no double-pay of
-    a shorter combination inside a longer one)."""
+    a shorter combination inside a longer one).
+
+    - Force several winning outcomes, then play 5 unforced spins
+    - For each, recompute wins from the real board via the calculator
+    - Assert computed win lines/total exactly match the server's"""
     paytable = init_data.game_info.pay_table
     checked_any_win = False
 
@@ -71,7 +75,10 @@ def test_win_calculation_matches_server_across_forced_and_free_spins(game_ready,
 @pytest.mark.functional
 @pytest.mark.regression
 def test_paytable_pay_increases_with_oak_count(init_data):
-    """PS-FUN-044: pay(n+1 OAK) > pay(n OAK) for every symbol."""
+    """PS-FUN-044: pay(n+1 OAK) > pay(n OAK) for every symbol.
+
+    - For each paying symbol in the live paytable
+    - Assert 3-OAK < 4-OAK < 5-OAK < 6-OAK pay"""
     for symbol, pays in init_data.game_info.pay_table.items():
         three, four, five, six = pays[2], pays[3], pays[4], pays[5]
         if six == 0:
