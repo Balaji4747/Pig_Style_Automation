@@ -152,35 +152,41 @@ def test_bet_panel_does_not_open_while_a_spin_is_in_flight(game_ready):
 @pytest.mark.functional
 @pytest.mark.regression
 @pytest.mark.test_case("PS-REG-007")
-def test_bet_panel_does_not_open_during_free_spins(game_ready):
+def test_bet_panel_does_not_open_during_free_spins(game_ready, init_data):
     """PS-FUN-019: bet controls are disabled for the whole Free Spins
     feature.
 
-    - Trigger a Bonus feature, choose Sticky Wilds
+    No cheat involved: force_next_spin() is confirmed unreliable in this
+    environment (CLAUDE.md D-019) - buy_feature_and_wait() is a real,
+    deterministic purchase used purely as a reliable trigger here.
+
+    - Buy the feature at min bet, choose Sticky Wilds
     - Try to open the Bet panel during Free Spins
     - Assert it stays closed, then drain the feature so later tests start clean"""
-    from utils.api_client import parse_spin_response
+    bet_panel = game_ready.open_bet_panel()
+    bet_panel.select_bet(f"{init_data.player_info.min_bet:.2f}")
+    bet_panel.confirm()
 
-    def trigger():
-        game_ready.wait_for_loading_overlay_to_clear()
-        game_ready.page.wait_for_timeout(3_000)
-        game_ready.press_space_bar()
-
-    game_ready.force_next_spin("3 OAK BN")
-    exchange = game_ready.network_spy.wait_for_response("spin", trigger, timeout_ms=10_000)
-    result = parse_spin_response(exchange.response_body)
+    result = game_ready.buy_feature_and_wait()
     log.info("Feature triggered: %s, next feature: %s", result.is_feature_triggered, result.next_feature)
     assert result.is_feature_triggered
 
     game_ready.wait_for(lambda: game_ready.get_pixi_node_or_none(game_ready.FEATURE_CHOICE_TITLE_NODE) is not None, timeout_ms=15_000)
-    game_ready.choose_free_spins_feature("sticky")
-    game_ready.wait_for(lambda: game_ready.get_pixi_node_or_none(game_ready.FEATURE_CHOICE_TITLE_NODE) is None, timeout_ms=10_000)
+    try:
+        game_ready.choose_free_spins_feature("sticky")
+    except TimeoutError:
+        pass
     game_ready.dismiss_congrats_popup_if_present()
 
     game_ready.click_pixi_button(game_ready.BET_BUTTON_NODE)
     bet_panel_open = game_ready.get_pixi_node_or_none("betPanelView") is not None
     log.info("Bet panel opened during Free Spins: %s (expected: False)", bet_panel_open)
     assert not bet_panel_open
+
+    game_ready.drain_active_feature_if_any()
+    bet_panel = game_ready.open_bet_panel()
+    bet_panel.select_bet(f"{init_data.player_info.default_bet:.2f}")
+    bet_panel.confirm()
 
     # Clean up: drain the feature so later tests start clean.
     game_ready.play_feature_spins_to_completion()

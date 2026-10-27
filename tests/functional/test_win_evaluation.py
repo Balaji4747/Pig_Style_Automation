@@ -5,15 +5,16 @@ from utils.megaways_calculator import evaluate, total_win
 
 log = get_logger(__name__)
 
-# The cheat tool only forces a symbol/count, not an exact reel layout, so we
-# can't reproduce the workbook's hand-picked boards (e.g. "BB on R2,R3,R4 but
-# not R1") exactly. Instead these outcomes are forced to reliably produce
-# *some* win, and the win-evaluation algorithm itself (left-to-right
-# matching, stop-at-first-non-match, ways multiplication, no double-pay,
-# summing multiple symbol wins) is validated by reproducing the server's
-# winLines exactly via utils.megaways_calculator.evaluate() on whatever
-# board results — a stronger check than any single hand-picked example.
-FORCE_OUTCOMES_FOR_WINS = ["3 OAK AA", "4 OAK BB ", "5 OAK CC ", "3 OAK KK ", "4 OAK LL "]
+# No cheat involved: force_next_spin() is confirmed unreliable in this
+# environment (CLAUDE.md D-019). The win-evaluation algorithm itself
+# (left-to-right matching, stop-at-first-non-match, ways multiplication, no
+# double-pay, summing multiple symbol wins) is validated by reproducing the
+# server's winLines exactly via utils.megaways_calculator.evaluate() on
+# whatever board results from genuinely unforced spins - a stronger check
+# than any single hand-picked example, and one that doesn't depend on the
+# cheat tool actually landing a specific symbol/count.
+MAX_SPIN_ATTEMPTS = 30
+MIN_WINNING_SAMPLES = 5
 
 
 def _assert_calculator_matches_server(result, paytable) -> None:
@@ -43,33 +44,31 @@ def _assert_calculator_matches_server(result, paytable) -> None:
 @pytest.mark.test_case("PS-REG-017")
 @pytest.mark.test_case("PS-REG-018")
 @pytest.mark.test_case("PS-REG-019")
-def test_win_calculation_matches_server_across_forced_and_free_spins(game_ready, init_data):
+def test_win_calculation_matches_server_across_unforced_spins(game_ready, init_data):
     """PS-FUN-038 (left-to-right, adjacent reels only), PS-FUN-039 (stop at
     first non-matching/non-wild reel), PS-FUN-040 (ways = product of
     per-reel match counts), PS-FUN-041 (no pay below 3-of-a-kind),
     PS-FUN-042 (multiple symbol wins summed), PS-FUN-043 (no double-pay of
     a shorter combination inside a longer one).
 
-    - Force several winning outcomes, then play 5 unforced spins
-    - For each, recompute wins from the real board via the calculator
-    - Assert computed win lines/total exactly match the server's"""
+    - Spin (unforced) up to 30 times, validating the calculator-vs-server
+      invariant on every single spin (win or not)
+    - Stop early once 5 winning spins have been validated, for a meaningful
+      sample of the algorithm actually paying out
+    - Fail if zero winning spins were observed within the budget"""
     paytable = init_data.game_info.pay_table
-    checked_any_win = False
+    winning_samples = 0
 
-    for outcome in FORCE_OUTCOMES_FOR_WINS:
-        game_ready.force_next_spin(outcome)
+    for attempt in range(1, MAX_SPIN_ATTEMPTS + 1):
         result = game_ready.spin_and_wait()
-        log.info("Forced outcome: %s", outcome)
+        log.info("Attempt %s", attempt)
         _assert_calculator_matches_server(result, paytable)
-        checked_any_win = checked_any_win or bool(result.win_lines)
+        if result.win_lines:
+            winning_samples += 1
+        if winning_samples >= MIN_WINNING_SAMPLES:
+            break
 
-    for i in range(5):
-        result = game_ready.spin_and_wait()
-        log.info("Unforced spin %s", i + 1)
-        _assert_calculator_matches_server(result, paytable)
-        checked_any_win = checked_any_win or bool(result.win_lines)
-
-    assert checked_any_win, "No winning spin observed to validate win-evaluation against"
+    assert winning_samples > 0, f"No winning spin observed in {MAX_SPIN_ATTEMPTS} unforced spins to validate win-evaluation against"
 
 
 @pytest.mark.functional

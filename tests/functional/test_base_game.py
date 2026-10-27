@@ -46,20 +46,21 @@ def test_ways_counter_equals_product_of_reel_heights(game_ready):
 @pytest.mark.functional
 @pytest.mark.regression
 def test_maximum_ways_117649_when_all_reels_at_7(game_ready):
-    """PS-FUN-007: forcing all reels to height 7 (via "6 OAK AA") shows
-    117,649 ways. "6 OAK AA" doesn't *guarantee* a full board every time
-    (confirmed: it influences but doesn't fully determine reel heights) —
-    retried a few times rather than failing on the first miss.
+    """PS-FUN-007: when all 6 reels happen to show height 7, ways equals
+    117,649. No cheat involved: force_next_spin() is confirmed unreliable in
+    this environment (CLAUDE.md D-019) - all 6 reels simultaneously at
+    maximum height is a genuinely rare random event, so this budget trades
+    runtime for a real chance of observing it.
 
-    - Force "6 OAK AA", retry up to 4 times until all 6 reels are height 7
+    - Spin (unforced) up to 100 times until all 6 reels are height 7
     - Assert reported and displayed ways both equal 117,649"""
-    for attempt in range(4):
-        game_ready.force_next_spin("6 OAK AA")
+    max_attempts = 100
+    for attempt in range(1, max_attempts + 1):
         result = game_ready.spin_and_wait()
         heights = [len(reel) for reel in result.reel_view]
-        log.info("Attempt %s: reel heights %s, ways %s", attempt + 1, heights, result.ways)
-        if all(len(reel) == 7 for reel in result.reel_view):
+        log.info("Attempt %s: reel heights %s, ways %s", attempt, heights, result.ways)
+        if all(h == 7 for h in heights):
             assert result.ways == 117_649
             assert game_ready.get_displayed_ways() == 117_649
             return
-    pytest.fail("'6 OAK AA' did not produce a full 7-symbol board in 4 attempts")
+    pytest.fail(f"No unforced spin produced a full 7-symbol board (117,649 ways) in {max_attempts} attempts")

@@ -31,28 +31,28 @@ def test_balance_debited_by_exactly_the_bet_amount(game_ready):
 @pytest.mark.sanity
 @pytest.mark.test_case("PS-REG-009")
 def test_base_game_win_credited_to_balance(game_ready, init_data):
-    """PS-FUN-021: a base game win is credited to the balance. Attempts to
-    force "3 OAK AA" to bias toward a win, but never assumes the cheat tool
-    actually forced it (confirmed unreliable, D-019) — validates whatever
-    the spin actually returns by recomputing the expected win from the real
-    board via megaways_calculator.evaluate() instead of a hardcoded value.
+    """PS-FUN-021: a base game win is credited to the balance. No cheat
+    involved: force_next_spin() is confirmed unreliable in this environment
+    (CLAUDE.md D-019) - spins unforced until a real win lands, then
+    validates whatever the spin actually returns by recomputing the
+    expected win from the real board via megaways_calculator.evaluate()
+    instead of a hardcoded value.
 
-    - Try forcing "3 OAK AA", retry up to 4 times until a real win lands
+    - Spin (unforced) up to 15 times until a real win lands
     - Recompute expected win from the actual board via the calculator
     - Assert computed win matches server win and balance was credited"""
     paytable = init_data.game_info.pay_table
-    for attempt in range(4):
+    max_attempts = 15
+    for attempt in range(1, max_attempts + 1):
         balance_before = game_ready.get_balance()
-        log.info("Attempt %s: balance before %s", attempt + 1, balance_before)
-        game_ready.force_next_spin("3 OAK AA")
         result = game_ready.spin_and_wait()
-        log.info("Win: %s, balance after: %s", result.total_win, result.balance)
+        log.info("Attempt %s: balance before %s, win %s, balance after %s", attempt, balance_before, result.total_win, result.balance)
         if result.total_win > 0:
             computed = evaluate(result.reel_view, paytable, result.bet_amount_used, wild_multipliers=result.wild_multipliers)
             assert total_win(computed) == result.total_win
             assert result.balance == balance_before - result.bet + result.total_win
             return
-    pytest.fail("No winning spin observed in 4 attempts to validate win-credit behavior against")
+    pytest.fail(f"No winning spin observed in {max_attempts} attempts to validate win-credit behavior against")
 
 
 @pytest.mark.functional

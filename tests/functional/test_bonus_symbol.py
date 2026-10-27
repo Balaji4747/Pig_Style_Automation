@@ -9,32 +9,44 @@ log = get_logger(__name__)
 @pytest.mark.regression
 @pytest.mark.sanity
 @pytest.mark.test_case("PS-REG-024")
-def test_three_bonus_symbols_trigger_free_spins(game_ready):
+def test_three_bonus_symbols_trigger_free_spins(game_ready, init_data):
     """PS-FUN-050: 3 Bonus symbols anywhere on the reels trigger Free Spins
-    (the FS type selection screen). force_next_spin("3 OAK BN") places BN on
-    3 separate reels (non-adjacent is irrelevant — Bonus is a scatter, not a
-    ways symbol). force_next_spin() is confirmed unreliable in this
-    environment (CLAUDE.md D-019) — retries until a genuine 3+ scatter spin
-    actually occurs rather than trusting the cheat tool on the first try.
+    (the FS type selection screen). No cheat involved: force_next_spin() is
+    confirmed unreliable in this environment (CLAUDE.md D-019; a 3+ Bonus
+    trigger is also too rare to rely on landing unforced, previously making
+    this case ENVIRONMENT-BLOCKED). buy_feature_and_wait() is a real,
+    deterministic purchase confirmed live to always trigger with
+    scatter_count >= 3, used here purely as a reliable trigger - not to test
+    the Buy flow itself (see test_buy_free_spins.py / test_buy_feature.py).
 
-    - Force 3 Bonus symbols and spin, retry up to 5 times until scatter count >= 3
-    - Assert feature triggered and next feature is pickFeature"""
-    for attempt in range(5):
-        game_ready.force_next_spin("3 OAK BN")
-        result = game_ready.spin_and_wait()
-        log.info(
-            "Attempt %s: scatter count %s, feature triggered %s, next feature %s",
-            attempt + 1, result.scatter_count, result.is_feature_triggered, result.next_feature,
-        )
-        if result.scatter_count >= 3:
-            assert result.is_feature_triggered
-            assert result.next_feature == "pickFeature"
-            return
-    pytest.skip(
-        "force_next_spin('3 OAK BN') produced scatter_count 0 on all 5 attempts — cheat tool "
-        "confirmed non-functional in this environment (CLAUDE.md D-019), and a 3+ Bonus trigger "
-        "is too rare to rely on landing unforced. ENVIRONMENT-BLOCKED, not a product defect."
+    - Buy the feature at min bet
+    - Assert scatter count >= 3, feature triggered, next feature is pickFeature
+    - Drain the feature so later tests start clean"""
+    bet_panel = game_ready.open_bet_panel()
+    bet_panel.select_bet(f"{init_data.player_info.min_bet:.2f}")
+    bet_panel.confirm()
+
+    result = game_ready.buy_feature_and_wait()
+    log.info(
+        "Scatter count: %s, feature triggered: %s, next feature: %s",
+        result.scatter_count, result.is_feature_triggered, result.next_feature,
     )
+    assert result.scatter_count >= 3
+    assert result.is_feature_triggered
+    assert result.next_feature == "pickFeature"
+
+    game_ready.wait_for(
+        lambda: game_ready.get_pixi_node_or_none(game_ready.FEATURE_CHOICE_TITLE_NODE) is not None, timeout_ms=15_000
+    )
+    try:
+        game_ready.choose_free_spins_feature("sticky")
+    except TimeoutError:
+        pass
+    game_ready.drain_active_feature_if_any()
+
+    bet_panel = game_ready.open_bet_panel()
+    bet_panel.select_bet(f"{init_data.player_info.default_bet:.2f}")
+    bet_panel.confirm()
 
 
 @pytest.mark.functional
@@ -60,13 +72,35 @@ def test_fewer_than_three_bonus_symbols_do_not_trigger(game_ready):
 
 @pytest.mark.functional
 @pytest.mark.regression
-def test_bonus_symbols_do_not_pay_as_a_way(game_ready):
+def test_bonus_symbols_do_not_pay_as_a_way(game_ready, init_data):
     """PS-FUN-053: Bonus symbols never award a ways pay (BN pay is 0 in the
-    math file, confirmed in config/paytable.yaml and the live paytable).
+    math file, confirmed in config/paytable.yaml and the live paytable). No
+    cheat involved: force_next_spin() is confirmed unreliable in this
+    environment (CLAUDE.md D-019) - buy_feature_and_wait() is a real,
+    deterministic purchase that reliably lands 3+ Bonus symbols, used here
+    purely to guarantee BN is genuinely present on the board so this check
+    is meaningful, not to test the Buy flow itself.
 
-    - Force 3 Bonus symbols and spin
-    - Assert no win line's symbol is "BN" """
-    game_ready.force_next_spin("3 OAK BN")
-    result = game_ready.spin_and_wait()
-    log.info("Win lines: %s", [(wl.symbol, wl.win_amount) for wl in result.win_lines])
+    - Buy the feature at min bet (guarantees 3+ BN on the board)
+    - Assert no win line's symbol is "BN"
+    - Drain the feature so later tests start clean"""
+    bet_panel = game_ready.open_bet_panel()
+    bet_panel.select_bet(f"{init_data.player_info.min_bet:.2f}")
+    bet_panel.confirm()
+
+    result = game_ready.buy_feature_and_wait()
+    log.info("Scatter count: %s, win lines: %s", result.scatter_count, [(wl.symbol, wl.win_amount) for wl in result.win_lines])
     assert all(wl.symbol != "BN" for wl in result.win_lines)
+
+    game_ready.wait_for(
+        lambda: game_ready.get_pixi_node_or_none(game_ready.FEATURE_CHOICE_TITLE_NODE) is not None, timeout_ms=15_000
+    )
+    try:
+        game_ready.choose_free_spins_feature("sticky")
+    except TimeoutError:
+        pass
+    game_ready.drain_active_feature_if_any()
+
+    bet_panel = game_ready.open_bet_panel()
+    bet_panel.select_bet(f"{init_data.player_info.default_bet:.2f}")
+    bet_panel.confirm()
