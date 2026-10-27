@@ -2,6 +2,9 @@ import pytest
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
 from utils.api_client import parse_spin_response
+from utils.logger import get_logger
+
+log = get_logger(__name__)
 
 
 @pytest.mark.interruption
@@ -202,3 +205,109 @@ def test_hard_context_close_during_free_spins_resumes(game_ready, open_game_page
         assert result.closed
     finally:
         new_context.close()
+
+
+@pytest.mark.interruption
+@pytest.mark.recovery
+@pytest.mark.test_case("PS-INT-024")
+def test_reload_during_bought_sticky_free_spins_preserves_state(game_ready, init_data, buy_and_choose):
+    """No dedicated workbook row for a Buy-sourced entry specifically;
+    extends PS-INT-024 (reload mid-Sticky-Wilds FS) to a round entered via a
+    real purchase instead of an organic trigger - the project's explicit
+    "unfinished Buy Bonus" recovery scenario.
+
+    - Select min bet, buy and choose Sticky Wilds
+    - Play 2 feature spins, then reload mid-round
+    - Assert the round resolves cleanly (no stuck/duplicated state)"""
+    bet_panel = game_ready.open_bet_panel()
+    bet_panel.select_bet(f"{init_data.player_info.min_bet:.2f}")
+    bet_panel.confirm()
+
+    buy_and_choose("sticky")
+
+    for _ in range(2):
+        game_ready.wait_for_loading_overlay_to_clear()
+        game_ready.page.wait_for_timeout(3_000)
+        try:
+            game_ready.network_spy.wait_for_response("feature", game_ready.press_space_bar, timeout_ms=8_000)
+        except PlaywrightTimeoutError:
+            break
+
+    pre_reload_unfinished = game_ready.get_init_data().unfinished_info
+    log.info("unfinished_info before reload: %s", pre_reload_unfinished is not None)
+
+    game_ready.reload_and_wait_ready()
+    assert game_ready.get_init_data().unfinished_info is None, "bought sticky round should have resolved cleanly after reload"
+
+    bet_panel = game_ready.open_bet_panel()
+    bet_panel.select_bet(f"{init_data.player_info.default_bet:.2f}")
+    bet_panel.confirm()
+
+
+@pytest.mark.interruption
+@pytest.mark.recovery
+@pytest.mark.test_case("PS-INT-025")
+def test_reload_during_bought_raining_free_spins_preserves_state(game_ready, init_data, buy_and_choose):
+    """No dedicated workbook row for a Buy-sourced entry specifically;
+    extends PS-INT-025 (reload mid-Raining-Wilds FS) to a round entered via
+    a real purchase instead of an organic trigger.
+
+    - Select min bet, buy and choose Raining Wilds
+    - Play one feature spin, note its round id, then reload mid-round
+    - Assert the round was processed exactly once (no duplicate processing)"""
+    bet_panel = game_ready.open_bet_panel()
+    bet_panel.select_bet(f"{init_data.player_info.min_bet:.2f}")
+    bet_panel.confirm()
+
+    buy_and_choose("raining")
+
+    game_ready.network_spy.clear("feature")
+    game_ready.wait_for_loading_overlay_to_clear()
+    game_ready.page.wait_for_timeout(3_000)
+    game_ready.network_spy.wait_for_response("feature", game_ready.press_space_bar, timeout_ms=8_000)
+    this_round_id = game_ready.network_spy.last("feature").response_body["data"]["roundId"]
+
+    game_ready.reload_and_wait_ready()
+
+    all_round_ids = [e.response_body["data"]["roundId"] for e in game_ready.network_spy.all("feature")]
+    log.info("Round id: %s, occurrences after reload: %s", this_round_id, all_round_ids.count(this_round_id))
+    assert all_round_ids.count(this_round_id) == 1, "interrupted bought feature round was processed more than once"
+
+    bet_panel = game_ready.open_bet_panel()
+    bet_panel.select_bet(f"{init_data.player_info.default_bet:.2f}")
+    bet_panel.confirm()
+
+
+@pytest.mark.interruption
+@pytest.mark.recovery
+@pytest.mark.test_case("PS-INT-029")
+def test_buy_recovery_never_produces_duplicate_round_ids(game_ready, init_data):
+    """PS-INT-029: generalizes the existing "no duplicate round IDs across
+    recovery" invariant to the Buy Bonus path specifically - the explicit
+    "no double-charge" check for a bought round interrupted mid-flight.
+
+    - Select min bet, buy, reload immediately
+    - Resolve, then compare every captured spin/feature round id
+    - Assert no round id repeats across the whole captured sequence"""
+    bet_panel = game_ready.open_bet_panel()
+    bet_panel.select_bet(f"{init_data.player_info.min_bet:.2f}")
+    bet_panel.confirm()
+
+    game_ready.network_spy.clear("spin")
+    game_ready.network_spy.clear("feature")
+    result = game_ready.buy_feature_and_wait()
+    log.info("Bought round id: %s", result.round_id)
+
+    game_ready.network_spy.wait_for_response("init", lambda: game_ready.page.reload(), timeout_ms=30_000)
+    game_ready.wait_for(game_ready.is_loaded, timeout_ms=30_000)
+    game_ready.ensure_base_game_ready(timeout_ms=90_000)
+
+    spin_round_ids = [e.response_body["data"]["roundId"] for e in game_ready.network_spy.all("spin")]
+    feature_round_ids = [e.response_body["data"]["roundId"] for e in game_ready.network_spy.all("feature")]
+    all_round_ids = spin_round_ids + feature_round_ids
+    log.info("Captured round ids: %s", all_round_ids)
+    assert len(all_round_ids) == len(set(all_round_ids)), "a round id repeated across the Buy recovery sequence"
+
+    bet_panel = game_ready.open_bet_panel()
+    bet_panel.select_bet(f"{init_data.player_info.default_bet:.2f}")
+    bet_panel.confirm()

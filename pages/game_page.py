@@ -8,6 +8,7 @@ from pages.auto_spin_panel import AutoSpinPanel
 from pages.bet_panel import BetPanel
 from pages.buy_feature_panel import BuyFeaturePanel
 from pages.cheat_panel import CheatPanel
+from pages.history_page import HistoryPage
 from pages.rules_page import RulesPage
 from pages.paytable_page import PaytablePage
 from utils.api_client import InitResponse, SpinResult, parse_init_response, parse_spin_response
@@ -249,6 +250,43 @@ class GamePage(BasePage):
         assert result.is_feature_triggered, "expected this forced spin to trigger a feature"
         return result
 
+    def buy_feature_and_wait(self) -> SpinResult:
+        """Opens Buy Feature, confirms, and returns the triggering SpinResult
+        without auto-resolving the resulting feature round - the Buy-entry
+        counterpart to spin_and_wait_feature_trigger_only(). Does not depend
+        on force_next_spin()/the cheat tool (confirmed non-functional,
+        D-019): buying is a real, deterministic purchase. Confirmed live
+        (27 Oct 2026): the Buy confirm click triggers a normal POST /spin
+        call (not a separate purchase endpoint) that atomically debits the
+        full 100x-bet cost; the triggering spin's own win is deferred into
+        result.feature_results[0]["featureData"]["baseWin"] rather than
+        being credited to balance immediately."""
+        panel = self.open_buy_feature()
+        exchange = self.network_spy.wait_for_response("spin", panel.confirm)
+        result = parse_spin_response(exchange.response_body)
+        assert result.is_feature_triggered, "expected Buy confirm to trigger a feature"
+        return result
+
+    def get_congrats_text(self) -> str:
+        return self.get_pixi_text(self.CONGRATS_TEXT_NODE)
+
+    def drain_active_feature_if_any(self, timeout_ms: int = 60_000) -> None:
+        """Plays out an active Free Spins round to completion, but only if
+        one is actually still active (checked live via is_base_game_ready(),
+        not cached init data). Guards against calling
+        play_feature_spins_to_completion() on an already-finished round -
+        confirmed live (27 Oct 2026) that choose_free_spins_feature()'s own
+        retry-click loop can accidentally auto-drain a short round itself
+        (clicking near the reels during active play) before returning;
+        calling play_feature_spins_to_completion() again afterward would
+        press Space on a normal base-game spin instead of a no-op, firing a
+        real, unwanted debit."""
+        if not self.is_base_game_ready():
+            self.play_feature_spins_to_completion()
+            self.dismiss_congrats_popup_if_present()
+            self.wait_for(self.is_base_game_ready, timeout_ms=15_000)
+        self.wait_for_loading_overlay_to_clear(timeout_ms=timeout_ms)
+
     def is_feature_choice_visible(self) -> bool:
         return self.get_pixi_node_or_none(self.FEATURE_CHOICE_TITLE_NODE) is not None
 
@@ -440,7 +478,23 @@ class GamePage(BasePage):
         self.click_pixi_button(self.TURBO_BUTTON_NODE)
 
     def open_bet_panel(self) -> BetPanel:
-        self.click_pixi_button(self.BET_BUTTON_NODE)
+        # The Bet button click itself can occasionally not register/open the
+        # panel during a generally sluggish moment (confirmed live 27 Oct
+        # 2026: the panel never appeared at all, so no amount button could
+        # ever be found downstream regardless of BetPanel.select_bet's own
+        # retries) - retry the click itself, verified by the panel's own
+        # stake text actually appearing, rather than assuming one click
+        # always opens it.
+        for attempt in range(3):
+            self.click_pixi_button(self.BET_BUTTON_NODE)
+            try:
+                self.wait_for(
+                    lambda: self.get_pixi_node_or_none(BetPanel.STAKE_TEXT_NODE) is not None, timeout_ms=5_000
+                )
+                break
+            except TimeoutError:
+                if attempt == 2:
+                    raise
         # The bet amount buttons animate in with a per-item stagger (same
         # pattern as the cheat panel's `--delay`-based entrance) — confirmed
         # live (D-023 follow-up): clicking a later-positioned amount (e.g.
@@ -481,6 +535,9 @@ class GamePage(BasePage):
 
     def open_paytable(self) -> PaytablePage:
         return self.open_info_panel().go_to_paytable()
+
+    def open_history(self) -> HistoryPage:
+        return self.open_info_panel().go_to_history()
 
     def open_cheat_panel(self) -> CheatPanel:
         """Opens the built-in QA cheat tool (requires allowCheat=true on the

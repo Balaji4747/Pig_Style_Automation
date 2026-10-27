@@ -108,18 +108,35 @@ def test_refresh_on_free_spins_choice_screen_restores_it(game_ready):
 @pytest.mark.recovery
 @pytest.mark.test_case("PS-INT-005")
 @pytest.mark.test_case("PS-REG-112")
-def test_refresh_immediately_after_buy_confirm(game_ready):
+def test_refresh_immediately_after_buy_confirm(game_ready, init_data):
     """PS-INT-005: refreshing right after confirming Buy Feature must debit
-    exactly once and resume the bought feature. Ref: GR-56.
+    exactly once and resume the bought feature. Confirmed live (27 Oct 2026):
+    clicking Buy confirm fires a normal POST /spin that atomically debits
+    100x bet; the pending round reliably shows in unfinishedInfo. Ref: GR-56.
 
-    BLOCKED: the Buy Feature confirm flow itself (which network call it
-    makes, whether force_next_spin() applies to the bought round) was never
-    verified in the prior Functional-sheet session (see
-    tests/functional/test_buy_free_spins.py, PS-FUN-059/061/062 explicitly
-    deferred) and this run's scope does not include re-deriving undocumented
-    payload/endpoint shapes without confirmation. Needs that groundwork
-    before this case can be written without guessing."""
-    pytest.skip("Blocked: Buy Feature confirm flow (endpoint/payload) not yet verified — see PS-FUN-059/061/062")
+    - Select min bet to minimize the real debit, buy the feature
+    - Reload immediately (no wait for client-side rendering)
+    - Assert no second debit occurred and unfinished_info is set
+    - Resolve cleanly via ensure_base_game_ready()"""
+    bet_panel = game_ready.open_bet_panel()
+    bet_panel.select_bet(f"{init_data.player_info.min_bet:.2f}")
+    bet_panel.confirm()
+
+    game_ready.buy_feature_and_wait()
+    balance_after_buy = game_ready.get_balance()
+
+    game_ready.network_spy.wait_for_response("init", lambda: game_ready.page.reload(), timeout_ms=30_000)
+    game_ready.wait_for(game_ready.is_loaded, timeout_ms=30_000)
+
+    assert game_ready.get_init_data().unfinished_info is not None
+    assert game_ready.get_balance() == balance_after_buy, "balance changed again across reload - possible double debit"
+
+    game_ready.ensure_base_game_ready(timeout_ms=60_000)
+    assert game_ready.get_init_data().unfinished_info is None
+
+    bet_panel = game_ready.open_bet_panel()
+    bet_panel.select_bet(f"{init_data.player_info.default_bet:.2f}")
+    bet_panel.confirm()
 
 
 @pytest.mark.interruption

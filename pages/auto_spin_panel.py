@@ -14,14 +14,18 @@ class AutoSpinPanel(BasePage):
     def select_spin_count(self, count: int) -> None:
         """Select a spin-count option, e.g. 25.
 
-        Retries once after a short wait on a "node not found" error — same
-        stagger-animation class of issue confirmed for the bet panel
-        (D-023/D-024/D-027)."""
-        try:
-            self.click_pixi_text(str(count))
-        except RuntimeError:
-            self.page.wait_for_timeout(1_000)
-            self.click_pixi_text(str(count))
+        Retries on a "node not found" error — same stagger-animation class
+        of issue confirmed for the bet panel (D-023/D-024/D-027). Widened
+        from a single 1s retry to match BetPanel.select_bet's budget (27 Oct
+        2026) after the single retry still wasn't enough during a run with
+        heavier server-side load."""
+        for wait_ms in (1_000, 2_000, 2_000):
+            try:
+                self.click_pixi_text(str(count))
+                return
+            except RuntimeError:
+                self.page.wait_for_timeout(wait_ms)
+        self.click_pixi_text(str(count))
 
     def start(self) -> None:
         self.click_pixi_button("startBtn")

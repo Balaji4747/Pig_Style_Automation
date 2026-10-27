@@ -117,6 +117,7 @@ class SpinResult:
     feature_trigger_positions: list
     scatter_count: int
     is_feature_triggered: bool
+    feature_results: list
 
     @property
     def ways(self) -> int:
@@ -218,4 +219,5 @@ def parse_spin_response(raw: dict) -> SpinResult:
         feature_trigger_positions=result.get("featureTriggerPositions", []),
         scatter_count=result["scatterCount"],
         is_feature_triggered=result["isFeatureTriggered"],
+        feature_results=result.get("featureResults", []),
     )

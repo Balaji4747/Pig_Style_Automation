@@ -16,6 +16,7 @@ class RulesPage(BasePage):
     CLOSE_BUTTON_SELECTOR = "#close_btn"
     RULES_TAB_SELECTOR = f'{PANEL_SELECTOR} .footer-item[data-section="rules"]'
     PAYTABLE_TAB_SELECTOR = f'{PANEL_SELECTOR} .footer-item[data-section="paytable"]'
+    HISTORY_TAB_SELECTOR = f'{PANEL_SELECTOR} .footer-item[data-section="history"]'
 
     # Confirmed live values (qa env, 23 Oct 2026) — resolves OBS-09.
     MIN_BET_SELECTOR = "#min-bet"
@@ -32,6 +33,12 @@ class RulesPage(BasePage):
 
         self.page.locator(self.PAYTABLE_TAB_SELECTOR).click()
         return PaytablePage(self.page)
+
+    def go_to_history(self):
+        from pages.history_page import HistoryPage
+
+        self.page.locator(self.HISTORY_TAB_SELECTOR).click()
+        return HistoryPage(self.page)
 
     def min_bet_text(self) -> str:
         return self.page.locator(self.MIN_BET_SELECTOR).inner_text()

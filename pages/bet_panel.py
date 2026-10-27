@@ -23,8 +23,12 @@ class BetPanel(BasePage):
         single retry to two (D-033) after a single retry still wasn't
         enough once in a long, state-heavy flow (PS-CMP's full smoke test,
         called right after a spin) even though a diagnostic confirmed the
-        target node was genuinely present with valid bounds throughout."""
-        for wait_ms in (1_000, 2_000):
+        target node was genuinely present with valid bounds throughout.
+        Widened again (27 Oct 2026) after the two-retry budget still wasn't
+        enough during a run with heavier server-side load (many live Buy
+        Feature purchases in one session) - same failure class, just a
+        longer sluggish window than previously observed."""
+        for wait_ms in (1_000, 2_000, 2_000, 3_000):
             try:
                 self.click_pixi_text(formatted_amount)
                 return
