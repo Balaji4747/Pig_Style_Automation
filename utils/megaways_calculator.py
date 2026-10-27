@@ -16,15 +16,20 @@ Confirmed from samples:
   entry is the real multiplier VALUE (not an index). A value of 0 is
   treated as "no multiplier" (1x), since 0 is never a valid wild-multiplier
   value per the math file's confirmed x1/x2/x3 range.
+- Neither per-way amounts nor the aggregate total_win are rounded
+  server-side (confirmed live 27 Oct 2026: a single 0.075 way produces a
+  total_win of exactly 0.075, not 0.08) — superseded the project's earlier
+  documented assumption that opCnf.moneyRounding (half-up, 2dp) applied to
+  these values; it does not. evaluate()/total_win() return full, unrounded
+  precision accordingly.
 """
 from dataclasses import dataclass
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal
 from itertools import product
 
 WILD = "WC"
 NON_PAYING = {"WC", "BN"}
 REELS = 6
-TWO_DP = Decimal("0.01")
 
 
 @dataclass(frozen=True)
@@ -34,10 +39,6 @@ class Way:
     positions: tuple
     wild_count: int
     win: Decimal
-
-
-def money(value) -> Decimal:
-    return Decimal(str(value)).quantize(TWO_DP, rounding=ROUND_HALF_UP)
 
 
 def position(reel: int, row: int) -> int:
@@ -95,8 +96,13 @@ def evaluate(reel_view, paytable, bet_amount_used, multiplier=1, wild_multiplier
                 continue
             wild_count = symbols_in_way.count(WILD)
             way_multiplier = Decimal(multiplier) * (Decimal(wild_mult) if wild_count else Decimal(1))
-            # ASSUMPTION: rounding is applied per way, then summed.
-            win = money(Decimal(pays[count - 1]) * coin * way_multiplier)
+            # Confirmed live (27 Oct 2026): each way's win amount is NOT
+            # rounded server-side - e.g. a 0.075 way is reported as exactly
+            # 0.075, not 0.08. Previously an unconfirmed assumption; fixed
+            # with explicit user sign-off per this module's standing "never
+            # modify without discussion" rule, alongside the matching fix in
+            # total_win().
+            win = Decimal(pays[count - 1]) * coin * way_multiplier
             ways.append(Way(
                 symbol=symbol,
                 count=count,
@@ -108,7 +114,15 @@ def evaluate(reel_view, paytable, bet_amount_used, multiplier=1, wild_multiplier
 
 
 def total_win(ways) -> Decimal:
-    return money(sum((w.win for w in ways), Decimal("0")))
+    """Sum of all ways' win amounts, at full unrounded precision. Confirmed
+    live (27 Oct 2026): the server's own total_win field is the exact
+    unrounded sum of per-way amounts (e.g. a single 0.075 way produces a
+    total_win of exactly 0.075, not 0.08) - it is NOT rounded to 2 decimals,
+    contrary to this project's earlier documented assumption that
+    opCnf.moneyRounding (half-up) applied here. Fixed with explicit user
+    sign-off per the standing "never modify without discussion" rule for
+    this module."""
+    return sum((w.win for w in ways), Decimal("0"))
 
 
 def ways_count(reel_view) -> int:
