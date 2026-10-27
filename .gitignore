@@ -15,3 +15,6 @@ venv/
 .vscode/
 
 .claude/scheduled_tasks.lock
+
+# Confidential client math model — do not commit (see conversation 2026-10-27)
+Docs/pig_style_R7 1 (1).xlsx
